@@ -27,7 +27,7 @@ export function DownloadsWatchCard() {
         {s && s.recent.length > 0 && (
           <div className="col" style={{ gap: 4 }}>
             {s.recent.slice(0, 8).map((e) => (
-              <div key={e.id} className="row" style={{ gap: 8, padding: '6px 2px', borderBottom: '1px solid rgba(96,140,220,0.07)' }}>
+              <div key={e.id} className="row" style={{ gap: 8, padding: '6px 2px', borderBottom: '1px solid rgba(160,160,171,0.07)' }}>
                 <span className="small" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Ltr>{e.name}</Ltr></span>
                 {e.status === 'done' && e.verdict ? <Badge tone={VERDICT_TONE[e.verdict]}>{t(`verdict.${e.verdict}`)}</Badge>
                   : e.status === 'failed' ? <Badge tone="gray">{t(`errors.${e.error ?? 'unknown'}`)}</Badge>

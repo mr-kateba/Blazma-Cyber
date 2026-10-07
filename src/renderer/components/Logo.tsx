@@ -29,17 +29,17 @@ export function Constellation() {
     <svg className="constellation" viewBox="0 0 760 260" preserveAspectRatio="xMaxYMin slice" aria-hidden="true">
       <defs>
         <radialGradient id="cg" cx="70%" cy="0%" r="80%">
-          <stop offset="0" stopColor="#38bdf8" stopOpacity="0.25" />
-          <stop offset="1" stopColor="#38bdf8" stopOpacity="0" />
+          <stop offset="0" stopColor="#ff6d00" stopOpacity="0.18" />
+          <stop offset="1" stopColor="#ff6d00" stopOpacity="0" />
         </radialGradient>
       </defs>
       <rect width="760" height="260" fill="url(#cg)" />
-      <g stroke="#3b82f6" strokeOpacity="0.28" strokeWidth="1">
+      <g stroke="#ff8a1f" strokeOpacity="0.22" strokeWidth="1">
         {links.map(([a, b], i) => (
           <line key={i} x1={pts[a]![0]} y1={pts[a]![1]} x2={pts[b]![0]} y2={pts[b]![1]} />
         ))}
       </g>
-      <g fill="#7dd3fc">
+      <g fill="#ffb066">
         {pts.map(([x, y], i) => (
           <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.6 : 1.6} opacity={i % 3 === 0 ? 0.9 : 0.55} />
         ))}

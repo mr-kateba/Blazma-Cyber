@@ -198,7 +198,7 @@ function SecurityHero() {
     };
   }, []);
   const Arrow = dir === 'rtl' ? ArrowLeft : ArrowRight;
-  const color = state?.grade === 'good' ? '#34d399' : state?.grade === 'fair' ? '#fbbf24' : state?.grade === 'poor' ? '#f87171' : '#64748b';
+  const color = state?.grade === 'good' ? '#34d399' : state?.grade === 'fair' ? '#ffb300' : state?.grade === 'poor' ? '#ff5252' : '#6e6e7a';
   return (
     <div className="card hero" style={{ position: 'relative' }}>
       <button className="hero-score" onClick={() => navigate('device-security')} aria-label={t('devsec.title')}>
@@ -382,7 +382,7 @@ export function Dashboard() {
               {activity.data.map((a) => {
                 const Icon = ACTIVITY_ICON[a.kind];
                 return (
-                  <div key={a.id} className="row" style={{ padding: '8px 4px', borderBottom: '1px solid rgba(96,140,220,0.07)' }}>
+                  <div key={a.id} className="row" style={{ padding: '8px 4px', borderBottom: '1px solid rgba(160,160,171,0.08)' }}>
                     <Icon size={16} color="var(--primary)" />
                     <span style={{ width: 130 }} className="small">{t(`activity.kind.${a.kind}`)}</span>
                     <span className="small" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Ltr>{a.subject}</Ltr></span>
@@ -396,7 +396,7 @@ export function Dashboard() {
 
         <Card title={t('dashboard.systemOverview')} subtitle={t('dashboard.systemOverviewSub')} icon={MonitorCog} tone="purple">
           <div className="row" style={{ justifyContent: 'space-around', flexWrap: 'wrap', gap: 10 }}>
-            <Gauge value={s?.cpu.usagePercent ?? null} label={t('dashboard.cpuUsage')} color="#38bdf8" />
+            <Gauge value={s?.cpu.usagePercent ?? null} label={t('dashboard.cpuUsage')} color="#ff6d00" />
             <Gauge value={s?.memory.usedPercent ?? null} label={t('dashboard.ramUsage')} color="#34d399" />
             <Gauge value={s?.disk?.usedPercent ?? null} label={t('dashboard.diskUsage')} color="#a78bfa" />
           </div>
@@ -407,7 +407,7 @@ export function Dashboard() {
               {s && s.processCount !== null && <span>{t('dashboard.processes')}: <Ltr>{s.processCount}</Ltr></span>}
               {s && <span>· {t('dashboard.uptime')}: {formatDuration(t, s.uptimeSec * 1000)}</span>}
             </div>
-            <Sparkline values={cpuHist} color="#38bdf8" height={44} />
+            <Sparkline values={cpuHist} color="#ff6d00" height={44} />
           </div>
         </Card>
       </div>

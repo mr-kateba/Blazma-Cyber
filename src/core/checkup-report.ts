@@ -62,7 +62,7 @@ export function sanitizeCheckupReport(x: unknown): CheckupReportInput | null {
   return { areas };
 }
 
-const STATE_COLOR: Record<AreaState, string> = { ok: '#15803d', attention: '#b45309', problem: '#b91c1c', unavailable: '#64748b' };
+const STATE_COLOR: Record<AreaState, string> = { ok: '#15803d', attention: '#b45309', problem: '#c53030', unavailable: '#848a99' };
 
 export function buildCheckupHtmlReport(input: CheckupReportInput, t: T, lang: Lang, generatedAt: string, appVersion: string): string {
   const verdict = overall(input.areas.map((a) => ({ area: a.area, state: a.state, count: a.count })));

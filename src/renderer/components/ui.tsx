@@ -167,7 +167,7 @@ export function Gauge({ value, label, color, size = 118, unit = '%' }: { value: 
   return (
     <div className="gauge" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: `rotate(-90deg) ${dir === 'rtl' ? 'scaleY(-1)' : ''}` }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(100,130,190,0.14)" strokeWidth={9} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(160,160,171,0.14)" strokeWidth={9} />
         <circle
           className="arc"
           cx={size / 2}

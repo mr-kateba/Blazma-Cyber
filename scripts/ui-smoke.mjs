@@ -761,7 +761,7 @@ try {
   await win.locator('select.select', { has: win.locator('option[value="light"]') }).selectOption('light');
   await win.waitForFunction(() => document.documentElement.dataset.theme === 'light');
   const bg = await win.evaluate(() => getComputedStyle(document.body).getPropertyValue('--bg').trim());
-  assert.equal(bg, '#f3f6fb', 'light palette active');
+  assert.equal(bg, '#f5f6f8', 'light palette active');
   await win.locator('.nav-item', { hasText: 'Dashboard' }).click();
   await win.waitForFunction(() => !document.querySelector('.toast'), null, { timeout: 20000 }).catch(() => {});
   await win.waitForTimeout(500);

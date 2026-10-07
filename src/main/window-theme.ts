@@ -3,9 +3,9 @@ import { nativeTheme, type BrowserWindow } from 'electron';
 import type { Theme } from '../shared/api';
 
 const CHROME = {
-  dark: { background: '#060b18', overlay: { color: '#070d1c', symbolColor: '#8fa6cf' } },
-  midnight: { background: '#020409', overlay: { color: '#04060c', symbolColor: '#8fa6cf' } },
-  light: { background: '#f3f6fb', overlay: { color: '#fbfcfe', symbolColor: '#3d4d6b' } },
+  dark: { background: '#121216', overlay: { color: '#121216', symbolColor: '#a0a0ab' } },
+  midnight: { background: '#0a0a0d', overlay: { color: '#111115', symbolColor: '#a0a0ab' } },
+  light: { background: '#f5f6f8', overlay: { color: '#fefefe', symbolColor: '#5a6070' } },
 } as const;
 
 let current: Theme = 'dark';
