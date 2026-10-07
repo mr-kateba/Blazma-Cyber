@@ -1,11 +1,11 @@
 <div dir="rtl">
 
-## Blazma Cyber 1.1.5
+## Blazma Cyber 1.1.6
 
 منصة أمن سيبراني دفاعي لـ Windows 10/11، محلية أولًا، بالعربي والإنجليزي. الشرح الكامل: [README.ar.md](https://github.com/mr-kateba/Blazma-Cyber/blob/claude/vibrant-sagan-xxz92l/README.ar.md)
 
-### الجديد في 1.1.5
-- **هوية عائلة Blazma:** صارت الواجهة تشارك اللون السماوي لعائلة Blazma مع التطبيقات الشقيقة؛ ومسدّس Blazma البرتقالي يبقى الشعار.
+### الجديد في 1.1.6
+- **هوية عائلة Blazma الحقيقية:** نفس ألوان Blazma Boost وGet وCrosshair وAI وNT — أسطح جرافيت، واللون البرتقالي `#FF6D00`، وأزرار أساسية برتقالية. (الإصدار 1.1.5 أخذ لونًا أزرق قديمًا بالخطأ.) شريط العنوان والرسوم والتقارير المطبوعة تتبعها أيضًا.
 
 سابقًا في 1.1.4: إصلاح تشغيل استعادة كلمة المرور فعليًا (استخراج الهاش بأدوات John).
 
@@ -17,8 +17,8 @@
 **بدون تثبيت:** `Blazma-Cyber-*-x64-portable.zip` — فكّ الضغط وشغّل `Blazma Cyber.exe`؛ البيانات في `Blazma-data` بجانبه.
 
 ### التحقق من الملف
-- **مصدر البناء:** `gh attestation verify Blazma-Cyber-1.1.5-x64-setup.exe -R mr-kateba/Blazma-Cyber`
-- **SHA-256:** قارن `Get-FileHash .\Blazma-Cyber-1.1.5-x64-setup.exe -Algorithm SHA256` بملف `SHA256SUMS.txt`.
+- **مصدر البناء:** `gh attestation verify Blazma-Cyber-1.1.6-x64-setup.exe -R mr-kateba/Blazma-Cyber`
+- **SHA-256:** قارن `Get-FileHash .\Blazma-Cyber-1.1.6-x64-setup.exe -Algorithm SHA256` بملف `SHA256SUMS.txt`.
 
 ### الحالة بصدق
 - مُتحقَّق منه آليًا على Windows حقيقي: النظام، Defender، التوقيع الرقمي، التحليل الجنائي، الشبكة، pktmon، الواي فاي، الواجهة كاملة، وبناء المثبّت.
@@ -28,17 +28,17 @@
 
 ---
 
-## Blazma Cyber 1.1.5
+## Blazma Cyber 1.1.6
 
 Privacy-first, local-first, bilingual (Arabic/English) defensive cybersecurity workbench for Windows 10/11.
 
-**New in 1.1.5**
-- **Blazma family look:** the interface now shares the Blazma family sky accent with the sibling apps; the orange Blazma hexagon stays the logo.
+**New in 1.1.6**
+- **The real Blazma family look:** the same palette as Blazma Boost, Get, Crosshair, AI and NT — graphite surfaces, the orange `#FF6D00` accent and solid orange primary buttons (1.1.5 had picked an outdated blue palette by mistake). Title bar, charts and printed reports follow it too.
 
 Earlier in 1.1.4: password recovery actually runs (hash extracted with John's tools first).
 
 - **Portable:** `Blazma-Cyber-*-x64-portable.zip` runs without installing; data stays in `Blazma-data` next to it.
 - **Unsigned** (no certificate yet): SmartScreen → **More info → Run anyway**. Per-user install, no admin.
-- **Verify provenance:** `gh attestation verify Blazma-Cyber-1.1.5-x64-setup.exe -R mr-kateba/Blazma-Cyber`.
+- **Verify provenance:** `gh attestation verify Blazma-Cyber-1.1.6-x64-setup.exe -R mr-kateba/Blazma-Cyber`.
 - **Verify integrity:** compare `Get-FileHash <file> -Algorithm SHA256` with `SHA256SUMS.txt`.
 - Verified automatically on real Windows in CI; not yet hand-tested: Wi-Fi hardware, Nmap on Windows, install/uninstall, Defender quick/full scans, real John/hashcat.

@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="branding/logo.svg" width="128" alt="Blazma Cyber logo">
+</p>
+
+<p align="center">
+  <a href="https://github.com/mr-kateba/Blazma-Cyber/releases/latest"><img src="https://img.shields.io/github/v/release/mr-kateba/Blazma-Cyber?color=FF6D00" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mr-kateba/Blazma-Cyber?color=FF6D00" alt="License"></a>
+  <a href="https://github.com/mr-kateba/Blazma-Cyber/releases"><img src="https://img.shields.io/github/downloads/mr-kateba/Blazma-Cyber/total?color=FFB300" alt="Downloads"></a>
+</p>
+
 <div align="center">
 
 # Blazma Cyber
@@ -22,6 +32,7 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 ---
 
 ## Table of contents
+- [What's new in 1.1.6](#whats-new-in-116)
 - [What's new in 1.1.5](#whats-new-in-115)
 - [What's new in 1.1.4](#whats-new-in-114)
 - [What's new in 1.1.3](#whats-new-in-113)
@@ -38,6 +49,12 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 - [License](#license)
 
 ---
+
+## What's new in 1.1.6
+- **The real Blazma family look.** Blazma Cyber now uses the same palette as Blazma Boost, Get,
+  Crosshair, AI and NT: graphite surfaces, the orange `#FF6D00` accent and solid orange primary
+  buttons (1.1.5 had picked an older blue palette by mistake). Window title bar, charts and printed
+  reports follow it too.
 
 ## What's new in 1.1.5
 - **Blazma family look.** The interface now shares the Blazma family sky accent with the sibling
@@ -283,7 +300,7 @@ Optional, **user-installed** (Blazma never downloads or runs them by itself):
 ---
 
 ## Project status
-**v1.1.5 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
+**v1.1.6 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
 base) in CI: PowerShell facts, Defender status & EICAR file scan, Authenticode, forensics, the
 network tools, a real pktmon capture, the Wi-Fi reader, startup/signature review, the full UI
 end-to-end, and the NSIS installer build.

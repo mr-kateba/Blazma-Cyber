@@ -144,6 +144,9 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 ## v1.1.5 — DONE
 - DONE Theme: adopt the Blazma family sky accent (#38bdf8 dark / #0284c7 light) to match the sibling blazma-nt; orange hexagon stays the brand mark
 
+## v1.1.6 — DONE
+- DONE Theme: the actual Blazma family palette (graphite #121216/#1c1c22, accent #FF6D00, light #c2410c, solid orange primary buttons), matching Boost/Get/Crosshair/AI/NT; window chrome, charts and reports follow; README header aligned with the family (centered logo + badges); CLAUDE.md gets the family Authorship section. Replaces the sky accent of 1.1.5, which came from an outdated copy of blazma-nt
+
 ## Phase 7 — Polish
 - DONE Terminal: opens the regular Windows terminal (Windows Terminal, else PowerShell) in its own window — no in-app terminal by decision (the GUI never runs commands from user input)
 - DONE Packaging config (electron-builder.yml): per-user NSIS (asInvoker, no elevation, Arabic + English installer), asar, hardened Electron fuses (RunAsNode off, NODE_OPTIONS/inspect off, asar integrity, only-load-from-asar), no publish/auto-update; app icon generated from the logo SVG (scripts/make-icon.mjs)

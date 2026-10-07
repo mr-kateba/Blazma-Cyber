@@ -9,7 +9,7 @@ import { formatDateTime } from '../format';
 const ORDER: Record<DeviceCheck['status'], number> = { fail: 0, warn: 1, unknown: 2, pass: 3 };
 const TONE: Record<DeviceCheck['status'], Tone> = { pass: 'green', warn: 'amber', fail: 'red', unknown: 'gray' };
 const ICON = { pass: CircleCheck, warn: TriangleAlert, fail: CircleX, unknown: CircleHelp } as const;
-const GRADE_COLOR = { good: '#22c55e', fair: '#f59e0b', poor: '#ef4444' } as const;
+const GRADE_COLOR = { good: '#34d399', fair: '#ffb300', poor: '#ff5252' } as const;
 
 export function DeviceSecurity() {
   const { t, locale } = useI18n();
@@ -58,7 +58,7 @@ export function DeviceSecurity() {
           <>
             <Card>
               <div className="row" style={{ gap: 24, flexWrap: 'wrap' }}>
-                <Gauge value={r.score} label={t('devsec.score')} unit="/100" size={150} color={r.grade ? GRADE_COLOR[r.grade] : '#64748b'} />
+                <Gauge value={r.score} label={t('devsec.score')} unit="/100" size={150} color={r.grade ? GRADE_COLOR[r.grade] : '#6e6e7a'} />
                 <div className="col" style={{ gap: 8, flex: 1, minWidth: 240 }}>
                   <div className="big-value">{r.grade ? t(`devsec.grade.${r.grade}`) : t('devsec.grade.none')}</div>
                   <div className="muted">{r.grade ? t(`devsec.gradeHint.${r.grade}`) : t('devsec.gradeHint.none')}</div>

@@ -3,6 +3,13 @@
 Persistent guide for anyone (human or AI) working in this repository. Read it before changing code.
 Update it whenever an architectural decision changes.
 
+## Authorship
+
+ممنوع إضافة أي نسب للذكاء الاصطناعي أو سطور Co-Authored-By أو عبارات Generated with في الكوميتات أو طلبات الدمج أو الكود أو التوثيق. المؤلف الوحيد هو kateba (mr-kateba).
+
+Upstream copyright and license notices (the bundled engines, rules and data listed in
+THIRD-PARTY-NOTICES.md) stay exactly as they are.
+
 ## Product vision
 
 Blazma Cyber (Security • Forensics • Intelligence) is a **privacy-first, local-first, bilingual
@@ -145,7 +152,7 @@ API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encrypti
   capture), Wi-Fi Center, Nmap service scan (user-installed), light theme, smart search (Ctrl+K),
   file integrity monitor.
 - Latest audit: docs/AUDIT-REPORT.md (3 bugs found and fixed; weaknesses and proposed features listed).
-- Released: v1.0.0, v1.0.1, v1.1.0 (Phase G), v1.1.1 (Phase H: recovery resource control, new-device watch, icon/stop-early fixes), v1.1.2 (Phase I: checkup report, Outlook .msg, QR Code Check), v1.1.3 (encrypted-file detection reads RAR/7z/Office structures), v1.1.4 (recovery extracts the hash with *2john before running the engine), v1.1.5 (UI adopts the Blazma family sky accent) — 2026-09. NOT YET: signed installer.
+- Released: v1.0.0, v1.0.1, v1.1.0 (Phase G), v1.1.1 (Phase H: recovery resource control, new-device watch, icon/stop-early fixes), v1.1.2 (Phase I: checkup report, Outlook .msg, QR Code Check), v1.1.3 (encrypted-file detection reads RAR/7z/Office structures), v1.1.4 (recovery extracts the hash with *2john before running the engine), v1.1.5 (accent change), v1.1.6 (the Blazma family orange/graphite palette, family README header and Authorship rule) — 2026-10. NOT YET: signed installer.
 - Verified on Linux (Xvfb) locally and on real Windows (Server 2025, build 26100) in CI: PowerShell
   facts, Defender status + EICAR file scan, Authenticode, forensics, network, full UI E2E, NSIS build.
   Not yet verified: Windows 10/11 desktop specifics (title-bar overlay, launcher, installer
@@ -191,7 +198,7 @@ API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encrypti
 | 2026-09 | Portable mode = `portable.txt` marker next to the exe (added by scripts/make-portable.mjs to the zip), data in `Blazma-data`; userData redirected before the single-instance lock | One build for installer and zip; a portable copy never touches %APPDATA%; DPAPI-encrypted keys stay bound to the Windows account (stated in UI) |
 | 2026-09 | Updates: manual check only, link to the release page built in main (never the API's URL); no auto-download/installer | The app never downloads or runs binaries by itself; a signed-installer auto-update can come later |
 | 2026-09 | File/folder Defender scans use -DisableRemediation | Blazma reports; the user decides (quick/full follow Defender policy, stated in UI) |
-| 2026-09 | Branding: product name "Blazma Cyber" (not all-caps); logo = Blazma family hexagon (#FFB300→#FF3D00 gradient) with a white shield + check (`branding/`, `build/icon.*` via scripts/make-icon.mjs); env vars stay `BLAZMA_*`. UI accent = the family sky `#38bdf8` (dark) / `#0284c7` (light), matching the sibling blazma-nt; the orange hexagon stays the brand mark | Consistent with the sibling apps (Blazma Get, Blazma Boost, blazma-nt); env names are an internal contract |
+| 2026-09 | Branding: product name "Blazma Cyber" (not all-caps); logo = Blazma family hexagon (#FFB300→#FF3D00 gradient) with a white shield + check (`branding/`, `build/icon.*` via scripts/make-icon.mjs); env vars stay `BLAZMA_*`. UI = the Blazma family palette shared by Get, Boost, Crosshair, AI and NT: graphite surfaces (`#121216` / `#1c1c22`), accent `#FF6D00` (light theme `#c2410c`), solid primary buttons and outlined secondary ones; README header = centered logo + release/license/downloads badges | One family look across the Blazma apps; env names are an internal contract |
 | 2026-09 | Developer credit = `APP_AUTHOR` ('mr-kateba', src/shared/api.ts): About, language picker, sidebar footer, installer copyright, package author, README. Commits are authored as `mr-kateba <132195893+mr-kateba@users.noreply.github.com>` without AI co-author trailers | Owner's decision: the project is published under the owner's name |
 | 2026-09 | OSINT accounts check = WhatsMyName rules (`src/core/username-sites.json` from scripts/make-username-sites.mjs, pinned commit, CC BY-SA 4.0); found only on the exact exists-signature, missing only on the missing-signature, else "couldn't check" + reason; adult/dating/political/archive categories left out | Honest results (no guessing from status codes alone); a maintained open list instead of hand-written site rules |
 | 2026-09 | No drive-encryption (BitLocker) check in the Device Security Score | Owner decision: prompting people to turn on BitLocker risks data loss when the recovery key isn't saved |

@@ -1,5 +1,15 @@
 <div dir="rtl">
 
+<p align="center">
+  <img src="branding/logo.svg" width="128" alt="شعار Blazma Cyber">
+</p>
+
+<p align="center">
+  <a href="https://github.com/mr-kateba/Blazma-Cyber/releases/latest"><img src="https://img.shields.io/github/v/release/mr-kateba/Blazma-Cyber?color=FF6D00&label=%D8%A7%D9%84%D8%A5%D8%B5%D8%AF%D8%A7%D8%B1" alt="الإصدار"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mr-kateba/Blazma-Cyber?color=FF6D00&label=%D8%A7%D9%84%D8%AA%D8%B1%D8%AE%D9%8A%D8%B5" alt="الترخيص"></a>
+  <a href="https://github.com/mr-kateba/Blazma-Cyber/releases"><img src="https://img.shields.io/github/downloads/mr-kateba/Blazma-Cyber/total?color=FFB300&label=%D8%A7%D9%84%D8%AA%D9%86%D8%B2%D9%8A%D9%84%D8%A7%D8%AA" alt="التنزيلات"></a>
+</p>
+
 # Blazma Cyber — الشرح بالعربي
 ### الأمن • التحليل الجنائي • الاستخبارات
 
@@ -19,6 +29,7 @@
 ---
 
 ## المحتويات
+- [الجديد في 1.1.6](#الجديد-في-116)
 - [الجديد في 1.1.5](#الجديد-في-115)
 - [الجديد في 1.1.4](#الجديد-في-114)
 - [الجديد في 1.1.3](#الجديد-في-113)
@@ -35,6 +46,11 @@
 - [الترخيص](#الترخيص)
 
 ---
+
+## الجديد في 1.1.6
+- **هوية عائلة Blazma الحقيقية.** صار Blazma Cyber يستخدم نفس ألوان Blazma Boost وGet وCrosshair وAI
+  وNT: أسطح جرافيت، واللون البرتقالي `#FF6D00`، وأزرار أساسية برتقالية (الإصدار 1.1.5 أخذ لونًا أزرق
+  قديمًا بالخطأ). وشريط عنوان النافذة والرسوم والتقارير المطبوعة تتبع نفس الألوان.
 
 ## الجديد في 1.1.5
 - **هوية عائلة Blazma.** صارت الواجهة تشارك اللون السماوي لعائلة Blazma مع التطبيقات الشقيقة (نفس
@@ -272,7 +288,7 @@ cd Blazma-Cyber
 ---
 
 ## حالة المشروع
-**الإصدار 1.1.5 (مستقر).** مُتحقَّق منه آليًا على Windows حقيقي (Server 2025، نفس أساس Windows 11 24H2)
+**الإصدار 1.1.6 (مستقر).** مُتحقَّق منه آليًا على Windows حقيقي (Server 2025، نفس أساس Windows 11 24H2)
 عبر الفحص التلقائي: استعلامات PowerShell، حالة Defender وفحص ملف EICAR، التوقيع الرقمي، التحليل الجنائي،
 أدوات الشبكة، تسجيل pktmon حقيقي، قارئ الواي فاي، مراجعة بدء التشغيل والتواقيع، الواجهة كاملة، وبناء المثبّت.
 
