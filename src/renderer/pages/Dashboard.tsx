@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Activity, Radar, FolderCheck, Stethoscope, ChevronRight, Cpu, Earth, Mail, FileSearch, FolderPlus, Globe, HardDrive, Hash, KeyRound, Link2, MemoryStick,
-  Monitor, MonitorCog, Network, RefreshCw, Router, ScanSearch, ScrollText, ShieldCheck, Wifi, ArrowLeft, ArrowRight, type LucideIcon,
+  Monitor, MonitorCog, Network, RefreshCw, Router, ScanSearch, ScrollText, ShieldCheck, Wifi, ArrowLeft, ArrowRight, ArrowDown, ArrowUp, type LucideIcon,
 } from 'lucide-react';
 import type { ActivityEntry, SecurityStatus, SystemSnapshot } from '../../shared/api';
 import type { CheckupSummary } from '../../core/checkup';
@@ -9,7 +9,7 @@ import { Card, Dot, EmptyState, ErrorState, Gauge, IconTile, Ltr, Progress, Skel
 import { Constellation } from '../components/Logo';
 import { useApp } from '../components/AppContext';
 import { useI18n } from '../i18n/I18nProvider';
-import { formatBytes, formatDateTime, formatDuration } from '../format';
+import { formatBitRate, formatBytes, formatDateTime, formatDuration } from '../format';
 import { visibleNav, type PageId } from '../nav';
 import { DownloadsWatchCard } from '../components/DownloadsWatch';
 
@@ -98,6 +98,53 @@ function SecurityList({ sec, snap, qCount }: { sec: SecurityStatus | null; snap:
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Live download/upload speed from the adapters' own counters (sampled only while shown). */
+function NetSpeed() {
+  const { t } = useI18n();
+  const net = usePoll(async () => {
+    const r = await window.blazma.system.throughput();
+    if (!r.ok) throw new Error(r.error);
+    return r.data;
+  }, 1000);
+  const [hist, setHist] = useState<{ rx: number[]; tx: number[] }>({ rx: [], tx: [] });
+  const seen = useRef<unknown>(null);
+  useEffect(() => {
+    const d = net.data;
+    if (!d || d === seen.current || d.rx === null || d.tx === null) return;
+    seen.current = d;
+    setHist((h) => ({ rx: [...h.rx.slice(-(HISTORY * 2 - 1)), d.rx!], tx: [...h.tx.slice(-(HISTORY * 2 - 1)), d.tx!] }));
+  }, [net.data]);
+  const d = net.data;
+  const body = !d ? <Skeleton h={44} />
+    : !d.available ? <div className="small dim">{t(`errors.${d.reason ?? 'throughput_unavailable'}`)}</div>
+    : d.adapters.length === 0 && d.rx !== null ? <div className="small dim">{t('dashboard.net.none')}</div>
+    : (
+      <div className="net-speed">
+        {(['rx', 'tx'] as const).map((k) => (
+          <div key={k} className="col" style={{ gap: 4, minWidth: 0 }}>
+            <div className="row small" style={{ gap: 6 }}>
+              {k === 'rx' ? <ArrowDown size={14} style={{ color: 'var(--green)' }} /> : <ArrowUp size={14} style={{ color: 'var(--primary)' }} />}
+              <span className="muted">{t(k === 'rx' ? 'dashboard.net.down' : 'dashboard.net.up')}</span>
+              <strong className="net-speed-value"><Ltr>{d[k] === null ? t('dashboard.net.sampling') : formatBitRate(t, d[k]!)}</Ltr></strong>
+            </div>
+            <Sparkline values={hist[k]} color={k === 'rx' ? '#34d399' : '#ff6d00'} height={30} />
+          </div>
+        ))}
+      </div>
+    );
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div className="row tiny dim" style={{ marginBottom: 6 }}>
+        <span>{t('dashboard.net.title')}</span>
+        <span className="spacer" />
+        {d?.available && d.adapters.length > 0 && <span>{t('dashboard.net.via')} <Ltr>{d.adapters.join(', ')}</Ltr></span>}
+      </div>
+      {net.error ? <div className="small dim">{t(`errors.${net.error}`)}</div> : body}
+      <div className="tiny dim" style={{ marginTop: 6 }}>{t('dashboard.net.note')}</div>
     </div>
   );
 }
@@ -409,6 +456,7 @@ export function Dashboard() {
             </div>
             <Sparkline values={cpuHist} color="#ff6d00" height={44} />
           </div>
+          <NetSpeed />
         </Card>
       </div>
     </div>

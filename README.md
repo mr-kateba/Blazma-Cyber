@@ -63,6 +63,9 @@ By **[mr-kateba](https://github.com/mr-kateba)**
   the background, runs the same read-only checkup and shows the result as a notification. Missed
   runs happen at the next sign-in; turn it off on the same page. Threat hunting labels this task as
   Blazma's own instead of flagging it.
+- **Live network speed** on the dashboard: download and upload right now (kbps/Mbps) with a
+  small history, read from the connected adapters' own counters and sampled only while the
+  dashboard is open.
 
 ## What's new in 1.1.7
 - **A real globe in IP Intelligence.** The approximate location of an address is marked on a 3D

@@ -22,6 +22,7 @@ const api: BlazmaApi = {
   system: {
     snapshot: () => invoke('system:snapshot'),
     security: () => invoke('system:security'),
+    throughput: () => invoke('system:throughput'),
   },
   files: {
     pathForFile: (file) => webUtils.getPathForFile(file),

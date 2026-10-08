@@ -87,7 +87,14 @@ try {
   assert.ok(sb && sb.x > 700, `sidebar should be on the right in RTL (x=${sb?.x})`);
   await win.waitForTimeout(7000); // let CPU samples accumulate (real data)
   await assertClearOfCaptionButtons(win, 'ar');
+  // Live network speed from the adapters' own counters (PowerShell sampler on Windows, /proc elsewhere).
+  await win.getByText('سرعة الشبكة الآن').waitFor();
+  await win.locator('.net-speed-value', { hasText: /\d (ك|م|ج)\.بت\/ث/ }).first().waitFor({ timeout: 30000 });
   await win.screenshot({ path: join(out, '02-dashboard-ar.png') });
+  await win.locator('.net-speed').scrollIntoViewIfNeeded();
+  await win.waitForTimeout(2500); // a few samples for the sparklines
+  await win.locator('.card', { has: win.locator('.net-speed') }).screenshot({ path: join(out, '50-net-speed-ar.png') });
+  await win.locator('.main').evaluate((m) => m.scrollTo(0, 0));
 
   // Online lookups are the default (still only when the user starts one): the top bar says so.
   // The rest of this walk-through runs in Offline Mode, so no step can reach a real server.
