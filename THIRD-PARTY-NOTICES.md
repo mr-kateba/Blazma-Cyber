@@ -18,6 +18,7 @@ and are included with distributed builds.
 | lucide-react | 1.48.0 | ISC | Icons | https://github.com/lucide-icons/lucide |
 | jsQR | 1.4.0 | Apache-2.0 (`engines/licenses/jsqr.txt`, shipped as `resources/licenses/jsqr.txt`) | QR Code Check: decodes the QR code in a local image, inside the sandboxed renderer (bundled by Vite, no dependencies) | https://github.com/cozmo/jsQR |
 | IBM Plex Sans Arabic (via @fontsource) | 5.3.0 | SIL Open Font License 1.1 | Arabic + Latin UI font, bundled locally (no web font requests) | https://github.com/IBM/plex |
+| NASA Blue Marble (`src/renderer/assets/earth/earth-day.jpg`, 4096×2048) and Black Marble / Earth at Night (`earth-night.jpg`) | — | Public domain (NASA imagery, not copyrighted; credited in the UI) | IP Intelligence globe imagery, bundled; nothing is downloaded at run time | NASA Visible Earth; files taken from the three-globe examples at commit `c4e4f1fc24572161bea3a4dbfc5abed78b46ee09` (SHA-256 day `228deba2e4b600146bdcb6cfa359b8ead6aacc2b1c13550a29cd82824cfa1c01`, night `355ab23dd1323315b393d7b91dd2d7ee223a1cbaaba2b48dc72ba90d371ced24`) |
 | JetBrains Mono (via @fontsource) | 5.3.0 | SIL Open Font License 1.1 | Monospace font for hashes/paths | https://github.com/JetBrains/JetBrainsMono |
 
 ## Engines and rules bundled with the Windows installer

@@ -81,3 +81,4 @@ Configuration: `electron-builder.yml`.
 ## Environment variables (development only)
 - `BLAZMA_DATA_DIR` — use an isolated data directory
 - `BLAZMA_FORCE_OFFLINE=1` — force Offline Mode on
+- `BLAZMA_E2E_WEBGL=1` — (ui-smoke) let Chromium use its software GPU so the globe's WebGL path runs on machines without a graphics driver

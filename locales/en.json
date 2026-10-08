@@ -1052,7 +1052,19 @@
     "torYes": "Listed as a Tor exit node",
     "torNo": "Not in the current Tor exit list",
     "indicators": "Indicators",
-    "hostingHint": "Hosting / data center (per AbuseIPDB usage type)"
+    "hostingHint": "Hosting / data center (per AbuseIPDB usage type)",
+    "globe": {
+      "title": "On the globe",
+      "sub": "Where the network behind this address is registered or hosted (usually a data centre or the ISP) — never a person's home. Day and night are shaded for the current time.",
+      "recenter": "Back to the location",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "hint": "Drag to rotate · arrow keys and + / − work too",
+      "localTime": "Local time there now: {{time}}",
+      "credit": "Imagery: NASA Blue Marble and Black Marble (public domain), bundled with Blazma — the globe itself needs no Internet.",
+      "aria": "Globe marking the approximate location {{place}} at {{coords}}",
+      "unavailable": "The 3D globe can't be shown on this device (WebGL 2 isn't available). The coordinates are in the location card."
+    }
   },
   "domainintel": {
     "title": "Domain Intelligence",
