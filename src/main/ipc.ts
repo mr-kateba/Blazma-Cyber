@@ -53,6 +53,9 @@ import { SecretStore, isApiKeyService } from './services/secrets';
 import { SettingsService } from './services/settings';
 import { applyWindowTheme } from './window-theme';
 import { logger, setLogLevel } from './services/logger';
+import { removeSchedule, ScheduleError, scheduleStatus, setSchedule } from './services/schedule';
+import { sanitizeSchedule } from '../core/schedule';
+import type { ScheduledRun } from './scheduled-run';
 import { dataDir, portableDataDir, subDir } from './services/paths';
 
 const MAX_TEXT = 1024 * 1024;
@@ -63,12 +66,12 @@ function fail(error: string, detail?: string): Result<never> {
 }
 
 function errorCode(e: unknown): string {
-  if (e instanceof AnalysisError || e instanceof QuarantineError || e instanceof DefenderError || e instanceof YaraError || e instanceof IntelError || e instanceof forensics.ForensicsError || e instanceof NetToolsError || e instanceof RecoveryError || e instanceof CaseError || e instanceof ReportError || e instanceof TerminalError || e instanceof DeviceSecurityError || e instanceof EmailError || e instanceof PwnedError || e instanceof EventHuntError || e instanceof MemoryScanError || e instanceof UpdateError || e instanceof WifiError || e instanceof TrafficError || e instanceof NmapError || e instanceof FimError || e instanceof QrError) return e.code;
+  if (e instanceof AnalysisError || e instanceof QuarantineError || e instanceof DefenderError || e instanceof YaraError || e instanceof IntelError || e instanceof forensics.ForensicsError || e instanceof NetToolsError || e instanceof RecoveryError || e instanceof CaseError || e instanceof ReportError || e instanceof TerminalError || e instanceof DeviceSecurityError || e instanceof EmailError || e instanceof PwnedError || e instanceof EventHuntError || e instanceof MemoryScanError || e instanceof UpdateError || e instanceof WifiError || e instanceof TrafficError || e instanceof NmapError || e instanceof FimError || e instanceof QrError || e instanceof ScheduleError) return e.code;
   if (e instanceof OfflineModeError) return 'offline_mode';
   return 'internal_error';
 }
 
-export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSender: (e: IpcMainInvokeEvent) => boolean) {
+export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSender: (e: IpcMainInvokeEvent) => boolean, scheduled: ScheduledRun) {
   const settings = new SettingsService();
   setLogLevel(settings.get().logLevel);
   const history = new HistoryService(() => settings.get().keepHistory);
@@ -126,6 +129,8 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
         : undefined,
     };
   };
+  /** Translator in the UI language (for notifications sent by the main process). */
+  const uiT = () => createTranslator((settings.get().language === 'ar' ? arDict : enDict) as Dict, enDict as Dict);
   // Opt-in Downloads watcher: static analysis only, while the app is open.
   const downloads = new DownloadsWatcher({
     folder: () => app.getPath('downloads'),
@@ -138,8 +143,7 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
     onChange: (s) => getWindow()?.webContents.send('downloads:state', s),
     onFlagged: (ev) => {
       if (!settings.get().notifications || !Notification.isSupported()) return;
-      const lang = settings.get().language ?? 'en';
-      const t = createTranslator((lang === 'ar' ? arDict : enDict) as Dict, enDict as Dict);
+      const t = uiT();
       const n = new Notification({ title: t(`downloads.notify.${ev.verdict}`), body: t('downloads.notify.body', { name: ev.name }) });
       n.on('click', () => {
         const w = getWindow();
@@ -580,7 +584,24 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
     if (!s) return fail('invalid_input');
     history.saveCheckup(s);
     history.record({ kind: 'checkup', subject: '—', summaryKey: `activity.summary.checkup_${s.verdict}` });
+    scheduled.finished(s, uiT());
     return { ok: true, data: s };
+  });
+  handle('checkup:takeScheduled', () => ({ ok: true, data: scheduled.take() }));
+  // The scheduled task starts this exact program; a development build has no stable path to start.
+  const exe = () => (app.isPackaged ? process.execPath : null);
+  handle('checkup:schedule', async () => ({ ok: true, data: await scheduleStatus(exe()) }));
+  handle('checkup:setSchedule', async (cfg: unknown) => {
+    const c = sanitizeSchedule(cfg);
+    if (!c) return fail('invalid_input');
+    const st = await setSchedule(c, exe());
+    logger.security('scheduled_checkup_set', { frequency: c.frequency, day: c.day, time: c.time });
+    return { ok: true, data: st };
+  });
+  handle('checkup:removeSchedule', async () => {
+    const st = await removeSchedule(exe());
+    logger.security('scheduled_checkup_removed', {});
+    return { ok: true, data: st };
   });
 
   // ---- File integrity monitoring (read-only hashing of folders the user picks) ----
@@ -744,9 +765,11 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
   handle('cases:updateNote', (id: unknown, noteId: unknown, text: unknown) => caseOk(cases.updateNote(id, noteId, text)));
   handle('cases:removeNote', (id: unknown, noteId: unknown) => caseOk(cases.removeNote(id, noteId)));
   handle('cases:addEvent', (id: unknown, title: unknown, detail: unknown, time: unknown) => caseOk(cases.addEvent(id, title, detail, time)));
+  handle('cases:verifyCustody', (id: unknown) => caseOk(cases.verifyCustody(id)));
 
   handle('reports:generate', async (caseId: unknown, options: unknown) => {
     const rec = await reports.generate(cases.get(caseId), options);
+    if (rec.sha256) cases.recordExport(rec.caseId, rec.format, rec.sha256);
     logger.info('report_generated', { caseId: rec.caseId, format: rec.format, language: rec.language });
     return { ok: true, data: rec };
   });

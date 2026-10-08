@@ -43,7 +43,7 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 - DONE All sources go through NetworkGate (HTTP, DNS, TLS) → Offline Mode + Network Activity
 - Verification: DNS/ASN/TLS verified live; RDAP, ipinfo, Tor list and reputation APIs verified with fixtures/mocks only (HTTPS to those hosts is blocked in the build environment)
 - TODO Censys adapter (API changed to Platform tokens; not implemented — a stored key is unused, stated in UI)
-- TODO Use Electron `net.fetch` for system-proxy support (after verifying redirect: 'manual' semantics)
+- DONE System-proxy support: NetworkGate uses Chromium's network stack (session fetch; `net.request` for manual redirects)
 
 ## Phase 4 — Forensics — DONE (Windows collectors verified in CI; USB history fixed for machines without USBSTOR)
 - DONE Processes (PID/PPID, path, user, command line, start time, connection count, batch Authenticode check, "Analyze" → File Analyzer)
@@ -60,7 +60,7 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 - DONE Password Recovery workspace for files the user owns: bring-your-own engine (John the Ripper / hashcat, user-selected executable, validated), wordlist / mask / candidate-list modes, explicit authorization checkbox, progress + rate + elapsed, stop, pause/resume (POSIX; reported as unavailable on Windows)
 - DONE Recovered passwords are shown once in the UI and never written to logs or history (redaction covers `recovered`)
 - DONE Session orchestration verified end-to-end with a stand-in engine fixture
-- TODO Automatic hash extraction (`*2john`) inside Blazma; today the engine must accept the target directly or the user supplies the extracted hash
+- DONE Automatic hash extraction (`*2john`) inside Blazma (v1.1.4)
 - TODO Hash Lab wordlist management
 
 ## Phase 6 — Investigation
@@ -150,6 +150,10 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 ## v1.1.7 — DONE
 - DONE IP Intelligence globe: the approximate location on a 3D Earth (NASA Blue Marble + Black Marble, bundled, public domain), day/night from the real subsolar point, local time there, drag/keys/zoom; WebGL 2 with a CPU fallback for PCs without a GPU; math in src/core/globe.ts (unit-tested), both painters E2E-tested
 - DONE Online lookups on by default (owner decision: many checks need the Internet); still only on demand and logged; one-time migration of settings saved by ≤1.1.6
+
+## v1.1.8 — DONE
+- DONE Chain of custody for cases: append-only SHA-256 hash chain (src/core/custody.ts) over evidence/notes/events/case details/exported reports (file SHA-256), actor `user@host`; verification names edited/unrecorded/missing items and broken links; older cases start a chain on open and say so; shown on the case page and in HTML/JSON reports with the head hash; unit- and E2E-tested (incl. an outside edit detected and cleared)
+- DONE Scheduled checkup: per-user Task Scheduler task (XML via ScheduledTasks, least privilege, StartWhenAvailable) starting Blazma `--scheduled-checkup`; hidden launch or wake of the open instance (second-instance), the same renderer checkup, Windows notification, auto-quit of a hidden run; state shows other copy / edited / disabled; threat hunting labels the task as Blazma's own; task create/read/update/remove verified on real Windows in CI; wake path E2E-tested
 
 ## Phase 7 — Polish
 - DONE Terminal: opens the regular Windows terminal (Windows Terminal, else PowerShell) in its own window — no in-app terminal by decision (the GUI never runs commands from user input)

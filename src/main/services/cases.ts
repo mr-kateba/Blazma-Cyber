@@ -1,10 +1,13 @@
 // Local investigation case store. Cases are plain JSON under <data>/state/cases/, one file per case.
 // Evidence is kept strictly separate from analyst notes (different arrays), as required.
+// Every change is also appended to the case's hash-chained chain of custody (core/custody.ts).
 
 import { readdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
+import { hostname, userInfo } from 'node:os';
 import { join } from 'node:path';
-import type { CaseNote, CaseSummary, Evidence, EvidenceKind, InvestigationCase, TimelineEvent } from '../../shared/api';
+import type { CaseNote, CaseSummary, CustodyVerification, Evidence, EvidenceKind, InvestigationCase, TimelineEvent } from '../../shared/api';
+import { appendCustody, caseDigest, eventDigest, evidenceDigest, noteDigest, startCustody, verifyCustody, type CustodyInput } from '../../core/custody';
 import { readJson, writeJson } from './json-store';
 import { subDir } from './paths';
 
@@ -18,8 +21,20 @@ const ID_RE = /^CASE-\d{4}-\d{3,}$/;
 const EVIDENCE_KINDS: EvidenceKind[] = ['file', 'hash', 'ip', 'domain', 'url', 'email', 'process', 'connection', 'finding', 'other'];
 const rid = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
+/** "user@HOST": who made a change, as recorded in the chain of custody. */
+function currentActor(): string {
+  let user = 'unknown';
+  try {
+    user = userInfo().username || user;
+  } catch {
+    /* no account name (rare container setups) */
+  }
+  return `${user}@${hostname() || 'unknown'}`.slice(0, 200);
+}
+
 export class CaseService {
   private readonly dir = subDir('cases');
+  private readonly actor = currentActor();
 
   private file(id: string): string {
     return join(this.dir, `${id}.json`);
@@ -31,7 +46,15 @@ export class CaseService {
     c.evidence ??= [];
     c.notes ??= [];
     c.timeline ??= [];
+    if (!c.custody?.length) {
+      // A case saved before custody existed: the chain starts now and records what it holds.
+      c.custody = startCustody(c, this.actor, new Date().toISOString());
+      writeJson(this.file(c.id), c);
+    }
     return c;
+  }
+  private log(c: InvestigationCase, input: CustodyInput, time = new Date().toISOString()): void {
+    appendCustody((c.custody ??= []), input, this.actor, time);
   }
   private save(c: InvestigationCase): InvestigationCase {
     c.updatedAt = new Date().toISOString();
@@ -93,13 +116,16 @@ export class CaseService {
       evidence: [],
       notes: [],
       timeline: [{ id: rid('t'), time: now, title: 'case.created', detail: null, kind: 'status' }],
+      custody: [],
     };
+    this.log(c, { action: 'case_created', subject: c.id, digest: caseDigest(c), detail: null }, now);
     return this.save(c);
   }
 
   update(id: unknown, patch: unknown): InvestigationCase {
     const c = this.load(id);
     const p = (patch ?? {}) as Record<string, unknown>;
+    const before = caseDigest(c);
     if (typeof p.name === 'string' && p.name.trim()) c.name = p.name.trim().slice(0, 120);
     if (typeof p.description === 'string') c.description = p.description.slice(0, 4000);
     if (Array.isArray(p.tags)) c.tags = CaseService.tags(p.tags);
@@ -107,6 +133,8 @@ export class CaseService {
       if (p.status !== c.status) c.timeline.push({ id: rid('t'), time: new Date().toISOString(), title: p.status === 'closed' ? 'case.closed' : 'case.reopened', detail: null, kind: 'status' });
       c.status = p.status;
     }
+    const digest = caseDigest(c);
+    if (digest !== before) this.log(c, { action: 'case_edited', subject: c.id, digest, detail: c.status });
     return this.save(c);
   }
 
@@ -139,12 +167,17 @@ export class CaseService {
     };
     c.evidence.push(entry);
     c.timeline.push({ id: rid('t'), time: entry.addedAt, title: 'case.evidenceAdded', detail: `${entry.kind}:${value}`, kind: 'evidence' });
+    this.log(c, { action: 'evidence_added', subject: entry.id, digest: evidenceDigest(entry), detail: `${entry.kind}:${value}`.slice(0, 300) }, entry.addedAt);
     return this.save(c);
   }
 
   removeEvidence(id: unknown, evidenceId: unknown): InvestigationCase {
     const c = this.load(id);
-    c.evidence = c.evidence.filter((e) => e.id !== evidenceId);
+    const gone = c.evidence.find((e) => e.id === evidenceId);
+    if (!gone) throw new CaseError('evidence_not_found');
+    c.evidence = c.evidence.filter((e) => e.id !== gone.id);
+    // Removal is recorded, never silent: the log keeps what was removed (its hash) and when.
+    this.log(c, { action: 'evidence_removed', subject: gone.id, digest: evidenceDigest(gone), detail: `${gone.kind}:${gone.value}`.slice(0, 300) });
     return this.save(c);
   }
 
@@ -156,6 +189,7 @@ export class CaseService {
     const note: CaseNote = { id: rid('n'), text: body, createdAt: now, updatedAt: now };
     c.notes.push(note);
     c.timeline.push({ id: rid('t'), time: now, title: 'case.noteAdded', detail: null, kind: 'note' });
+    this.log(c, { action: 'note_added', subject: note.id, digest: noteDigest(note), detail: null }, now);
     return this.save(c);
   }
 
@@ -167,12 +201,16 @@ export class CaseService {
     if (!body) throw new CaseError('invalid_input');
     note.text = body;
     note.updatedAt = new Date().toISOString();
+    this.log(c, { action: 'note_edited', subject: note.id, digest: noteDigest(note), detail: null }, note.updatedAt);
     return this.save(c);
   }
 
   removeNote(id: unknown, noteId: unknown): InvestigationCase {
     const c = this.load(id);
-    c.notes = c.notes.filter((n) => n.id !== noteId);
+    const gone = c.notes.find((n) => n.id === noteId);
+    if (!gone) throw new CaseError('note_not_found');
+    c.notes = c.notes.filter((n) => n.id !== gone.id);
+    this.log(c, { action: 'note_removed', subject: gone.id, digest: noteDigest(gone), detail: null });
     return this.save(c);
   }
 
@@ -183,7 +221,19 @@ export class CaseService {
     const when = typeof time === 'string' && !Number.isNaN(Date.parse(time)) ? new Date(time).toISOString() : new Date().toISOString();
     const ev: TimelineEvent = { id: rid('t'), time: when, title: t, detail: typeof detail === 'string' ? detail.slice(0, 1000) : null, kind: 'event' };
     c.timeline.push(ev);
+    this.log(c, { action: 'event_added', subject: ev.id, digest: eventDigest(ev), detail: t.slice(0, 200) });
     return this.save(c);
+  }
+
+  verifyCustody(id: unknown): CustodyVerification {
+    return verifyCustody(this.load(id));
+  }
+
+  /** Records an exported report: its format and the SHA-256 of the file as written. */
+  recordExport(id: string, format: string, fileDigest: string): void {
+    const c = this.load(id);
+    this.log(c, { action: 'report_exported', subject: c.id, digest: fileDigest, detail: format.slice(0, 20) });
+    this.save(c);
   }
 
   clearAll(): void {

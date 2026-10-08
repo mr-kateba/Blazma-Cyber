@@ -946,6 +946,46 @@ export interface InvestigationCase {
   evidence: Evidence[];
   notes: CaseNote[];
   timeline: TimelineEvent[];
+  /** Append-only, hash-chained chain of custody (src/core/custody.ts). */
+  custody?: CustodyEntry[];
+}
+
+export type CustodyAction =
+  | 'case_created' | 'custody_started' | 'case_edited' | 'report_exported'
+  | 'evidence_added' | 'evidence_recorded' | 'evidence_removed'
+  | 'note_added' | 'note_recorded' | 'note_edited' | 'note_removed'
+  | 'event_added' | 'event_recorded';
+
+export interface CustodyEntry {
+  seq: number;
+  time: string;
+  action: CustodyAction;
+  /** Windows account and computer that made the change ("user@HOST"). */
+  actor: string;
+  /** Evidence / note / event id, or the case id. */
+  subject: string | null;
+  /** SHA-256 of the subject's content at that moment (of the file, for an exported report). */
+  digest: string | null;
+  detail: string | null;
+  prev: string;
+  hash: string;
+}
+
+export type CustodyProblem =
+  | { type: 'no_log' }
+  | { type: 'chain_broken'; seq: number }
+  | { type: 'case_changed' }
+  | { type: 'changed' | 'unrecorded' | 'missing'; kind: 'evidence' | 'note' | 'event'; subject: string };
+
+export interface CustodyVerification {
+  intact: boolean;
+  entries: number;
+  /** Hash of the newest entry: keep it elsewhere to prove later that nothing changed. */
+  head: string | null;
+  startedAt: string | null;
+  /** False when the chain began after the case was created (case from an older version). */
+  fullHistory: boolean;
+  problems: CustodyProblem[];
 }
 
 export type CaseSummary = Pick<InvestigationCase, 'id' | 'name' | 'status' | 'tags' | 'createdAt' | 'updatedAt'> & { evidenceCount: number; noteCount: number };
@@ -961,6 +1001,21 @@ export interface ReportOptions {
   includeTimeline: boolean;
 }
 
+/** The scheduled checkup's Windows task as it is right now. */
+export interface ScheduleStatus {
+  supported: boolean;
+  /** i18n error code when not supported (unsupported_platform, schedule_dev_build). */
+  reason?: string;
+  /** none = no task; other_copy = it starts a different Blazma (moved/portable copy); edited = changed
+   *  outside Blazma; disabled = turned off in Task Scheduler. */
+  state: 'none' | 'ok' | 'other_copy' | 'edited' | 'disabled';
+  config: import('../core/schedule').ScheduleConfig | null;
+  nextRun: string | null;
+  lastRun: string | null;
+  /** Task Scheduler's last result code (0 = success). */
+  lastResult: number | null;
+}
+
 export interface ReportRecord {
   id: string;
   caseId: string;
@@ -970,6 +1025,8 @@ export interface ReportRecord {
   path: string;
   createdAt: string;
   sizeBytes: number;
+  /** SHA-256 of the report file as written (case reports; recorded in the chain of custody). */
+  sha256?: string;
 }
 
 export type HuntSource = 'case' | 'quarantine' | 'activity' | 'network_log' | 'process' | 'connection' | 'service' | 'startup' | 'task' | 'yara_rule';
@@ -997,6 +1054,8 @@ export interface PersistenceItem {
   command: string;
   location: string | null;
   flags: string[]; // i18n keys under hunt.flag.*
+  /** Blazma's own scheduled-checkup task (exact path, name and program). */
+  own?: boolean;
 }
 
 // ---------------- Password Recovery (Phase 5) ----------------
@@ -1184,6 +1243,12 @@ export interface BlazmaApi {
     save(summary: { areas: Array<{ area: string; state: string; count: number }> }): Promise<Result<import('../core/checkup').CheckupSummary>>;
     /** Saves the checkup (states and counts only) as an HTML or PDF report in the Reports list. */
     report(input: import('../core/checkup-report').CheckupReportInput, language: 'ar' | 'en', format: 'html' | 'pdf'): Promise<Result<ReportRecord>>;
+    /** True once when Blazma was started (or woken) by the scheduled task to run the checkup. */
+    takeScheduled(): Promise<Result<boolean>>;
+    onScheduled(cb: () => void): () => void;
+    schedule(): Promise<Result<ScheduleStatus>>;
+    setSchedule(cfg: import('../core/schedule').ScheduleConfig): Promise<Result<ScheduleStatus>>;
+    removeSchedule(): Promise<Result<ScheduleStatus>>;
   };
   fim: {
     list(): Promise<Result<FimWatch[]>>;
@@ -1247,6 +1312,8 @@ export interface BlazmaApi {
     updateNote(id: string, noteId: string, text: string): Promise<Result<InvestigationCase>>;
     removeNote(id: string, noteId: string): Promise<Result<InvestigationCase>>;
     addEvent(id: string, title: string, detail: string | null, time: string | null): Promise<Result<InvestigationCase>>;
+    /** Re-checks the case's hash chain and its current contents against it. */
+    verifyCustody(id: string): Promise<Result<CustodyVerification>>;
   };
   reports: {
     generate(caseId: string, options: ReportOptions): Promise<Result<ReportRecord | null>>;

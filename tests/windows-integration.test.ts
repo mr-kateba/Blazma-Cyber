@@ -286,3 +286,27 @@ describe.runIf(WIN)('Startup programs and open ports on real Windows', () => {
     expect(list.some((s) => s.port === 135 || s.port === 445)).toBe(true);
   }, 120_000);
 });
+
+describe.runIf(WIN)('Windows integration: scheduled checkup task', () => {
+  // A throw-away task in its own folder, so a real user's schedule is never touched.
+  const id = { folder: '\\Blazma Cyber CI\\', name: `Checkup ${process.pid}` };
+  const exe = process.execPath;
+
+  afterAll(async () => {
+    const { removeSchedule } = await import('../src/main/services/schedule');
+    await removeSchedule(exe, id).catch(() => {});
+  });
+
+  it('creates, reads back, updates and removes the per-user task', async () => {
+    const { removeSchedule, scheduleStatus, setSchedule } = await import('../src/main/services/schedule');
+    expect(await scheduleStatus(exe, id)).toMatchObject({ supported: true, state: 'none' });
+    const on = await setSchedule({ frequency: 'weekly', day: 5, time: '21:15' }, exe, id);
+    expect(on).toMatchObject({ supported: true, state: 'ok', config: { frequency: 'weekly', day: 5, time: '21:15' } });
+    expect(on.nextRun).toMatch(/^\d{4}-\d{2}-\d{2}T21:15/);
+    // Another copy of Blazma sees the task as pointing elsewhere.
+    expect((await scheduleStatus('C:\\Elsewhere\\Blazma Cyber.exe', id)).state).toBe('other_copy');
+    const daily = await setSchedule({ frequency: 'daily', day: 1, time: '06:00' }, exe, id);
+    expect(daily.config).toEqual({ frequency: 'daily', day: 1, time: '06:00' });
+    expect((await removeSchedule(exe, id)).state).toBe('none');
+  }, 120000);
+});

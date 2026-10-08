@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { registerIpc } from './ipc';
+import { ScheduledRun } from './scheduled-run';
+import { SCHEDULED_FLAG } from '../core/schedule';
 import { logger } from './services/logger';
 import { portableDataDir } from './services/paths';
 import { SettingsService } from './services/settings';
@@ -13,6 +15,9 @@ const RENDERER_INDEX = join(__dirname, '..', 'renderer', 'index.html');
 const RENDERER_BASE = pathToFileURL(join(__dirname, '..', 'renderer')).href;
 
 let win: BrowserWindow | null = null;
+// Started by the scheduled-checkup task: run hidden, report through a notification.
+const scheduledLaunch = process.argv.includes(SCHEDULED_FLAG);
+const scheduled = new ScheduledRun(() => win, scheduledLaunch);
 
 function isTrustedUrl(url: string | undefined): boolean {
   if (!url) return false;
@@ -34,11 +39,10 @@ if (!app.requestSingleInstanceLock()) {
   app.exit(0);
 }
 
-app.on('second-instance', () => {
-  if (win) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
-  }
+app.on('second-instance', (_e, argv) => {
+  // The scheduled task fired while Blazma is open: run the checkup here, without stealing focus.
+  if (argv.includes(SCHEDULED_FLAG)) return scheduled.request();
+  scheduled.show();
 });
 
 // Hardening that applies to every webContents, including any unexpected one.
@@ -96,7 +100,7 @@ function createWindow() {
       devTools: !app.isPackaged,
     },
   });
-  win.once('ready-to-show', () => win?.show());
+  win.once('ready-to-show', () => !scheduledLaunch && win?.show());
   win.on('closed', () => (win = null));
   if (DEV_URL) void win.loadURL(DEV_URL);
   else void win.loadFile(RENDERER_INDEX);
@@ -115,9 +119,10 @@ app.whenReady().then(() => {
   });
   session.defaultSession.setPermissionCheckHandler(() => false);
 
-  registerIpc(() => win, isTrustedSender);
+  registerIpc(() => win, isTrustedSender, scheduled);
   logger.info('app_started', { version: app.getVersion(), platform: process.platform });
   createWindow();
+  if (scheduledLaunch) scheduled.request();
   followSystemTheme(() => win);
 });
 

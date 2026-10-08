@@ -284,7 +284,13 @@ export function Shell() {
   const { t, lang } = useI18n();
   const [version, setVersion] = useState<string | null>(null);
   useEffect(() => void window.blazma.app.info().then((i) => setVersion(i.version)), []);
-  const { page, navigate, settings, updateSettings, viewSeq } = useApp();
+  const { page, navigate, settings, updateSettings, viewSeq, openWith } = useApp();
+  // The scheduled-checkup task started (or woke) Blazma: open the full checkup and run it.
+  useEffect(() => {
+    const go = () => void window.blazma.checkup.takeScheduled().then((r) => r.ok && r.data && openWith('checkup', '', 'autorun'));
+    go();
+    return window.blazma.checkup.onScheduled(go);
+  }, [openWith]);
 
   return (
     <>

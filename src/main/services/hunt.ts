@@ -3,6 +3,7 @@
 // Read-only. Everything is local; nothing is sent anywhere.
 
 import type { CaseService } from './cases';
+import { SCHEDULED_FLAG, TASK_FOLDER, TASK_NAME } from '../../core/schedule';
 import type { HistoryService } from './history';
 import type { QuarantineService } from './quarantine';
 import * as forensics from './forensics';
@@ -102,7 +103,9 @@ export class HuntService {
     for (const tk of task.rows) {
       if (tk.microsoft) continue;
       const cmd = tk.actions.join(' ');
-      items.push({ kind: 'task', name: tk.name, command: cmd, location: tk.path, flags: persistenceFlags(cmd) });
+      // Blazma's own scheduled checkup (exact folder, name and this program) is labelled, not flagged.
+      const own = tk.path === TASK_FOLDER && tk.name === TASK_NAME && cmd.toLowerCase() === `${process.execPath} ${SCHEDULED_FLAG}`.toLowerCase();
+      items.push({ kind: 'task', name: tk.name, command: cmd, location: tk.path, flags: own ? [] : persistenceFlags(cmd), ...(own ? { own } : {}) });
     }
     return items.sort((a, b) => b.flags.length - a.flags.length);
   }
