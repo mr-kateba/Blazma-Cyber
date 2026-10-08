@@ -6,6 +6,8 @@
 // tag forbids any script or remote resource even if a viewer is permissive.
 
 import type { InvestigationCase, ReportOptions } from '../shared/api';
+import { verifyCustody } from './custody';
+import { problemText } from './custody-text';
 import { directionOf, type Lang, type Vars } from './i18n';
 
 type T = (key: string, vars?: Vars) => string;
@@ -76,6 +78,7 @@ export function buildJsonReport(c: InvestigationCase, opts: ReportOptions, gener
     ...(opts.includeNotes ? { notes: c.notes } : {}),
     ...(opts.includeTimeline ? { timeline: [...c.timeline].sort((a, b) => a.time.localeCompare(b.time)) } : {}),
     ...(opts.includeMachineInfo && machine ? { machine } : {}),
+    custody: { verification: verifyCustody(c), entries: c.custody ?? [] },
   };
   return JSON.stringify(payload, null, 2);
 }
@@ -162,6 +165,16 @@ export function buildHtmlReport(c: InvestigationCase, opts: ReportOptions, t: T,
     ? `<ol class="timeline">${timeline.map((ev) => `<li><span class="muted">${escapeHtml(fmt(lang, ev.time))}</span> — <strong>${escapeHtml(ev.title)}</strong>${ev.detail ? `<div>${ltr(ev.detail)}</div>` : ''}</li>`).join('')}</ol>`
     : empty;
 
+  const custody = verifyCustody(c);
+  const custodyHtml = `<p><strong>${escapeHtml(t(custody.intact ? 'custody.intact' : 'custody.broken'))}</strong></p>
+    ${custody.problems.length ? `<ul>${custody.problems.map((p) => `<li>${escapeHtml(problemText(p, t))}</li>`).join('')}</ul>` : ''}
+    <table class="kv">${row(t('custody.head'), `<span class="mono">${ltr(custody.head ?? '—')}</span>`)}${row(t('custody.startedLabel'), escapeHtml(fmt(lang, custody.startedAt)))}${row(t('custody.entriesLabel'), ltr(custody.entries))}</table>
+    ${custody.fullHistory ? '' : `<p class="muted">${escapeHtml(t('custody.partial', { time: fmt(lang, custody.startedAt) }))}</p>`}
+    <p class="muted">${escapeHtml(t('custody.headHint'))}</p>
+    ${(c.custody ?? []).length ? `<table class="grid"><thead><tr><th>#</th><th>${escapeHtml(t('custody.col.time'))}</th><th>${escapeHtml(t('custody.col.action'))}</th><th>${escapeHtml(t('custody.col.actor'))}</th><th>${escapeHtml(t('custody.col.digest'))}</th><th>${escapeHtml(t('custody.col.hash'))}</th></tr></thead><tbody>
+      ${(c.custody ?? []).map((e) => `<tr><td>${ltr(e.seq)}</td><td>${escapeHtml(fmt(lang, e.time))}</td><td>${escapeHtml(t(`custody.action.${e.action}`))}${e.detail ? `<div class="details">${ltr(e.detail)}</div>` : ''}</td><td>${ltr(e.actor)}</td><td class="mono">${ltr(e.digest ? e.digest.slice(0, 16) : '—')}</td><td class="mono">${ltr(e.hash.slice(0, 16))}</td></tr>`).join('')}
+    </tbody></table>` : ''}`;
+
   const machineHtml = opts.includeMachineInfo && machine
     ? `<table class="kv">${row(t('report.os'), ltr(machine.os))}${row(t('report.arch'), ltr(machine.arch))}${row(t('report.hostname'), ltr(machine.hostname))}${row(t('report.appVersion'), ltr(machine.appVersion))}</table>`
     : '';
@@ -188,7 +201,9 @@ ${section(t('report.indicators'), indHtml)}
 ${section(t('report.evidence'), evidenceHtml)}
 ${opts.includeNotes ? section(t('report.notes'), notesHtml) : ''}
 ${opts.includeTimeline ? section(t('report.timeline'), timelineHtml) : ''}
+${section(t('custody.title'), custodyHtml)}
 ${machineHtml ? section(t('report.machine'), machineHtml) : ''}
 <footer>${escapeHtml(t('report.footer'))}</footer>
 </div></body></html>`;
 }
+

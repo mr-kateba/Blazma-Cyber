@@ -32,6 +32,7 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 ---
 
 ## Table of contents
+- [What's new in 1.1.8](#whats-new-in-118)
 - [What's new in 1.1.7](#whats-new-in-117)
 - [What's new in 1.1.6](#whats-new-in-116)
 - [What's new in 1.1.5](#whats-new-in-115)
@@ -50,6 +51,18 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 - [License](#license)
 
 ---
+
+## What's new in 1.1.8
+- **Chain of custody for cases.** Every change to a case — evidence added or removed, notes edited,
+  events, details, exported reports (with the report file's SHA-256) — is recorded with who and when
+  in a hash-chained log. Blazma re-checks it and shows exactly what was edited, added or deleted
+  outside the app. Keep the **head hash** (also printed in every case report) to prove later that
+  nothing changed.
+- **Scheduled checkup.** Turn on *Repeat automatically* on the Full checkup page (daily or weekly):
+  a Windows Task Scheduler task for your account only — no administrator rights — opens Blazma in
+  the background, runs the same read-only checkup and shows the result as a notification. Missed
+  runs happen at the next sign-in; turn it off on the same page. Threat hunting labels this task as
+  Blazma's own instead of flagging it.
 
 ## What's new in 1.1.7
 - **A real globe in IP Intelligence.** The approximate location of an address is marked on a 3D
@@ -200,13 +213,14 @@ smart search (Ctrl+K), a light theme, and offline device-manufacturer names. Ful
   detection (ZIP/7z/RAR/PDF/Office) + your own John the Ripper / hashcat, with a **resource control**
   (Balanced / Maximum, and GPU/CPU for hashcat). Results are shown once and **never logged.**
 - **Cases** — `CASE-YYYY-NNN`, evidence vs. notes, automatic timeline, "Add to case" from any module,
-  IOC export (CSV / STIX 2.1).
+  hash-chained **chain of custody**, IOC export (CSV / STIX 2.1).
 - **Reports** — HTML (escaped, script-free, strict CSP), JSON and PDF, in Arabic (RTL) or English.
 
 ### 👤 For everyone
 - **Full checkup** — one click runs device security, signs of tampering, startup programs, browser
   extensions, Wi-Fi, open ports and watched folders, and gives **one plain verdict** with a link to
-  each area's evidence. The dashboard remembers the last result; save it as a PDF/HTML report.
+  each area's evidence. The dashboard remembers the last result; save it as a PDF/HTML report, or
+  have it **repeat daily/weekly** with a notification.
 - **QR Code Check** — what a QR code contains before you scan it with your phone: link warnings,
   Wi-Fi logins, 2FA setup codes, payment requests, premium SMS. Decoded locally; nothing is opened.
 - **Device Security** — a score out of 100 from read-only Windows checks, each explained in plain
@@ -311,7 +325,7 @@ Optional, **user-installed** (Blazma never downloads or runs them by itself):
 ---
 
 ## Project status
-**v1.1.7 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
+**v1.1.8 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
 base) in CI: PowerShell facts, Defender status & EICAR file scan, Authenticode, forensics, the
 network tools, a real pktmon capture, the Wi-Fi reader, startup/signature review, the full UI
 end-to-end, and the NSIS installer build.

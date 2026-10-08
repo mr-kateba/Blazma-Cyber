@@ -28,6 +28,7 @@ async function assertClearOfCaptionButtons(win, label) {
 import { createServer } from 'node:net';
 import { createServer as createHttpServer } from 'node:http';
 import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..');
@@ -387,6 +388,27 @@ try {
   assert.ok(html.includes('203.0.113.77'), 'report contains the evidence');
   assert.ok(!html.includes('<b>wave</b>') && html.includes('&lt;b&gt;wave&lt;/b&gt;'), 'case name must be escaped');
   assert.ok(!/<script/i.test(html), 'report contains no scripts');
+  assert.ok(html.includes('سلسلة حفظ الأدلة') && html.includes('سليمة'), 'report carries the intact chain of custody');
+  // Chain of custody: every change so far is recorded and verifies; the export itself is recorded too.
+  await win.getByRole('tab', { name: 'سلسلة حفظ الأدلة' }).click();
+  await win.getByText('سليمة — كل تغيير مسجَّل مطابق').waitFor();
+  await win.locator('table.data', { hasText: 'تصدير تقرير' }).waitFor();
+  for (const action of ['إنشاء القضية', 'إضافة دليل', 'إضافة ملاحظة']) await win.locator('table.data td', { hasText: action }).first().waitFor();
+  await win.waitForTimeout(300);
+  await win.screenshot({ path: join(out, '49-custody-ar.png'), fullPage: true });
+  // An edit made outside Blazma (straight in the case file) is detected.
+  const caseDir = join(dataDir, 'cases');
+  const caseFile = join(caseDir, readdirSync(caseDir).find((f) => f.endsWith('.json')));
+  const onDisk = JSON.parse(readFileSync(caseFile, 'utf8'));
+  onDisk.evidence[0].value = '198.51.100.1';
+  writeFileSync(caseFile, JSON.stringify(onDisk));
+  await win.getByRole('button', { name: 'تحقّق مجددًا' }).click();
+  await win.getByText('غير سليمة', { exact: false }).first().waitFor();
+  onDisk.evidence[0].value = '203.0.113.77';
+  writeFileSync(caseFile, JSON.stringify(onDisk));
+  await win.getByRole('button', { name: 'تحقّق مجددًا' }).click();
+  await win.getByText('سليمة — كل تغيير مسجَّل مطابق').waitFor();
+  await win.getByRole('tab', { name: 'التقرير' }).click();
   // Phase F: IOC export as STIX 2.1 and CSV from the same case.
   for (const [fmt, ext] of [['STIX 2.1', '.stix.json'], ['CSV (مؤشرات)', '.csv']]) {
     await win.getByRole('button', { name: fmt, exact: true }).click();
@@ -475,6 +497,9 @@ try {
   await win.getByText(/^فُحص /).waitFor({ timeout: 180000 });
   assert.equal(await win.locator('.devsec-row').count(), 7, 'seven checkup areas');
   if (process.platform !== 'win32') await win.locator('.devsec-row', { hasText: 'أمان الجهاز' }).getByText('متاح على Windows فقط.').waitFor();
+  // Scheduling: a per-user Windows task in the installed app; here (unpackaged / not Windows) it says why not.
+  await win.getByText('تكرار تلقائي').waitFor();
+  await win.getByText(process.platform === 'win32' ? 'الجدولة تحتاج نسخة Blazma Cyber المثبّتة' : 'متاح على Windows فقط.', { exact: false }).last().waitFor({ timeout: 60000 });
   await win.waitForTimeout(300);
   await win.screenshot({ path: join(out, '44-checkup-ar.png') });
   // Save the checkup as a report (states and counts only); opening the file is stubbed in the test.
@@ -488,6 +513,16 @@ try {
   // The dashboard remembers the last checkup (states and counts only).
   await win.locator('.nav-item', { hasText: 'لوحة التحكم' }).click();
   await win.getByText(/آخر فحص شامل: .* \(اليوم\)/).waitFor({ timeout: 20000 });
+
+  // The scheduled task fires while Blazma is open: a second launch with the flag hands the run to
+  // this instance (single-instance lock), which opens the checkup and runs it without a click.
+  const second = spawn(createRequire(import.meta.url)('electron'), [...(process.platform === 'linux' ? ['--no-sandbox'] : []), root, '--scheduled-checkup'], {
+    env: { ...process.env, BLAZMA_DATA_DIR: dataDir, ...(process.platform === 'linux' ? { XDG_CONFIG_HOME: xdg } : {}) },
+    stdio: 'ignore',
+  });
+  await new Promise((r) => second.once('exit', r));
+  await win.locator('h1', { hasText: 'فحص شامل' }).waitFor({ timeout: 30000 });
+  await win.getByText(/^فُحص /).waitFor({ timeout: 180000 });
 
   // What starts with Windows: real list + signatures on Windows, honest "Windows only" elsewhere.
   await win.locator('.nav-item', { hasText: 'برامج بدء التشغيل' }).click();

@@ -106,7 +106,7 @@ function PersistenceTab() {
                 { key: 'k', label: t('cases.kindLabel'), render: (x) => <Badge tone="purple">{t(`hunt.kind.${x.kind}`)}</Badge> },
                 { key: 'n', label: t('forensics.col.name'), render: (x) => <Ltr>{x.name}</Ltr> },
                 { key: 'c', label: t('forensics.col.command'), render: (x) => <Ltr mono breakAll className="small">{x.command}</Ltr> },
-                { key: 'f', label: '', render: (x) => <div className="col" style={{ gap: 4, alignItems: 'flex-start' }}>{x.flags.map((f) => <Badge key={f} tone="amber" icon={TriangleAlert}>{t(f)}</Badge>)}</div> },
+                { key: 'f', label: '', render: (x) => <div className="col" style={{ gap: 4, alignItems: 'flex-start' }}>{x.own && <Badge tone="green">{t('hunt.ownTask')}</Badge>}{x.flags.map((f) => <Badge key={f} tone="amber" icon={TriangleAlert}>{t(f)}</Badge>)}</div> },
               ]}
             />
           )}

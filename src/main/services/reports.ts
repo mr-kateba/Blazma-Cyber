@@ -6,6 +6,7 @@ import { BrowserWindow, shell } from 'electron';
 import os from 'node:os';
 import { app } from 'electron';
 import { writeFile, readFile, rm, stat } from 'node:fs/promises';
+import { bytesDigest } from '../../core/custody';
 import { dirname, extname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { InvestigationCase, ReportFormat, ReportOptions, ReportRecord } from '../../shared/api';
@@ -82,7 +83,9 @@ export class ReportService {
       }
     }
     const st = await stat(path);
-    const rec: ReportRecord = { id, caseId: c.id, caseName: c.name, format, language, path, createdAt: now, sizeBytes: st.size };
+    // The file's own hash goes into the case's chain of custody, so the export can be checked later.
+    const sha256 = bytesDigest(await readFile(path));
+    const rec: ReportRecord = { id, caseId: c.id, caseName: c.name, format, language, path, createdAt: now, sizeBytes: st.size, sha256 };
     this.saveIndex([rec, ...this.index()]);
     return rec;
   }

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
-import { BadgeCheck, CircleCheck, CircleDashed, DoorOpen, FolderCheck, Power, Loader2, Puzzle, RefreshCw, ShieldAlert, ShieldCheck, Stethoscope, TriangleAlert, Wifi, type LucideIcon, FileText } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { BadgeCheck, CalendarClock, CircleCheck, CircleDashed, DoorOpen, FolderCheck, Power, Loader2, Puzzle, RefreshCw, ShieldAlert, ShieldCheck, Stethoscope, TriangleAlert, Wifi, type LucideIcon, FileText } from 'lucide-react';
 import { deviceArea, extensionsArea, foldersArea, overall, portsArea, startupArea, tamperArea, wifiArea, type AreaResult, type AreaState, type CheckupArea, type CheckupSummary, type Part } from '../../core/checkup';
-import type { ConnectionRow, ForensicsResult, Result } from '../../shared/api';
+import type { ConnectionRow, ForensicsResult, Result, ScheduleStatus } from '../../shared/api';
+import type { ScheduleConfig, Weekday } from '../../core/schedule';
 import { listeningServices } from '../../core/listening';
 import { loadStartupReview } from './StartupApps';
-import { Badge, Card, IconTile, Notice, type Tone } from '../components/ui';
+import { Badge, Card, ErrorState, IconTile, Ltr, Notice, Skeleton, type Tone } from '../components/ui';
 import { useApp } from '../components/AppContext';
 import { useI18n } from '../i18n/I18nProvider';
 import { formatDateTime, newTaskId } from '../format';
@@ -25,7 +26,7 @@ const part = <T,>(r: Result<T>): Part<T> => (r.ok ? { data: r.data } : { error: 
 
 export function Checkup() {
   const { t, locale, lang } = useI18n();
-  const { navigate, toast } = useApp();
+  const { navigate, toast, prefillFor, viewSeq } = useApp();
   const [saving, setSaving] = useState(false);
   const [results, setResults] = useState<Partial<Record<CheckupArea, AreaResult>>>({});
   const [current, setCurrent] = useState<CheckupArea | null>(null);
@@ -85,6 +86,14 @@ export function Checkup() {
     void window.blazma.reports.open(r.data.id);
   };
 
+  // Opened by the scheduled task: run once per request (the result also goes out as a notification).
+  const autoRan = useRef(-1);
+  useEffect(() => {
+    if (prefillFor('checkup')?.mode !== 'autorun' || autoRan.current === viewSeq) return;
+    autoRan.current = viewSeq;
+    void run();
+  }, [viewSeq]);
+
   const list = AREAS.map((a) => results[a.area]).filter((x): x is AreaResult => !!x);
   const verdict = doneAt ? overall(list) : last?.verdict ?? null;
   const running = current !== null;
@@ -120,6 +129,7 @@ export function Checkup() {
           )}
         </Card>
         <Notice icon={ShieldCheck}>{t('checkup.readOnly')}</Notice>
+        <ScheduleCard />
         <div className="col" style={{ gap: 10 }}>
           {AREAS.map(({ area, icon: Icon, page }) => {
             const r = results[area];
@@ -148,5 +158,80 @@ export function Checkup() {
         </div>
       </div>
     </div>
+  );
+}
+
+const WEEKDAYS: Weekday[] = [6, 0, 1, 2, 3, 4, 5]; // Saturday first, as in the Arab world's week
+
+/** Optional repeat: a per-user Windows task that runs this checkup and shows a notification. */
+function ScheduleCard() {
+  const { t, locale } = useI18n();
+  const { toast } = useApp();
+  const [st, setSt] = useState<ScheduleStatus | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [cfg, setCfg] = useState<ScheduleConfig>({ frequency: 'daily', day: 0, time: '10:00' });
+  const load = () =>
+    void window.blazma.checkup.schedule().then((r) => {
+      if (!r.ok) return setErr(r.error);
+      setSt(r.data);
+      if (r.data.config) setCfg(r.data.config);
+    });
+  useEffect(load, []);
+  const apply = async (fn: () => ReturnType<typeof window.blazma.checkup.schedule>, ok: string) => {
+    setBusy(true);
+    const r = await fn();
+    setBusy(false);
+    if (!r.ok) return toast('red', t(`errors.${r.error}`));
+    setSt(r.data);
+    toast('green', t(ok));
+  };
+  const dayName = (d: Weekday) => new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(2024, 0, 7 + d)); // 2024-01-07 is a Sunday
+
+  return (
+    <Card title={t('checkup.schedule.title')} subtitle={t('checkup.schedule.sub')} icon={CalendarClock} tone="purple">
+      {err ? <ErrorState code={err} onRetry={load} /> : !st ? <Skeleton h={60} /> : !st.supported ? (
+        <div className="small muted">{t(`errors.${st.reason ?? 'unsupported_platform'}`)}</div>
+      ) : (
+        <div className="col" style={{ gap: 12 }}>
+          {st.state === 'ok' && st.config && (
+            <Notice tone="green" icon={CalendarClock}>
+              {t(`checkup.schedule.on.${st.config.frequency}`, { day: dayName(st.config.day), time: st.config.time })}
+              {st.nextRun && <div className="small">{t('checkup.schedule.next', { date: formatDateTime(locale, st.nextRun) })}</div>}
+              {st.lastRun && <div className="small">{t('checkup.schedule.last', { date: formatDateTime(locale, st.lastRun) })}{st.lastResult !== null && st.lastResult !== 0 && <> · <Ltr mono>{`0x${(st.lastResult >>> 0).toString(16)}`}</Ltr></>}</div>}
+            </Notice>
+          )}
+          {st.state !== 'ok' && st.state !== 'none' && <Notice tone="amber">{t(`checkup.schedule.state.${st.state}`)}</Notice>}
+          <div className="row-wrap" style={{ alignItems: 'flex-end', gap: 12 }}>
+            <div className="field">
+              <label htmlFor="sched-freq">{t('checkup.schedule.frequency')}</label>
+              <select id="sched-freq" className="select" value={cfg.frequency} onChange={(e) => setCfg({ ...cfg, frequency: e.target.value === 'weekly' ? 'weekly' : 'daily' })}>
+                <option value="daily">{t('checkup.schedule.daily')}</option>
+                <option value="weekly">{t('checkup.schedule.weekly')}</option>
+              </select>
+            </div>
+            {cfg.frequency === 'weekly' && (
+              <div className="field">
+                <label htmlFor="sched-day">{t('checkup.schedule.day')}</label>
+                <select id="sched-day" className="select" value={cfg.day} onChange={(e) => setCfg({ ...cfg, day: Number(e.target.value) as Weekday })}>
+                  {WEEKDAYS.map((d) => <option key={d} value={d}>{dayName(d)}</option>)}
+                </select>
+              </div>
+            )}
+            <div className="field">
+              <label htmlFor="sched-time">{t('checkup.schedule.time')}</label>
+              <input id="sched-time" className="input" type="time" dir="ltr" value={cfg.time} onChange={(e) => e.target.value && setCfg({ ...cfg, time: e.target.value.slice(0, 5) })} />
+            </div>
+            <button className="btn primary" disabled={busy} onClick={() => void apply(() => window.blazma.checkup.setSchedule(cfg), 'checkup.schedule.saved')}>
+              <CalendarClock size={15} /> {t(st.state === 'none' ? 'checkup.schedule.turnOn' : 'checkup.schedule.update')}
+            </button>
+            {st.state !== 'none' && (
+              <button className="btn" disabled={busy} onClick={() => void apply(() => window.blazma.checkup.removeSchedule(), 'checkup.schedule.removed')}>{t('checkup.schedule.turnOff')}</button>
+            )}
+          </div>
+          <div className="tiny dim">{t('checkup.schedule.how')}</div>
+        </div>
+      )}
+    </Card>
   );
 }

@@ -40,6 +40,13 @@ malware samples or third-party data in reports.
   strings). Every value in an HTML report is escaped, the document contains no scripts and carries a
   `default-src 'none'` CSP, so opening a report cannot load remote content or run code. PDFs are
   rendered from that HTML in a hidden, sandboxed window with JavaScript disabled.
+- **Scheduled checkup** — opt-in, created from the Full checkup page as a per-user Task Scheduler task
+  (`\Blazma Cyber\Scheduled checkup`): least privilege, interactive token (runs only while you are
+  signed in), starts this exact program with one fixed flag. Created and removed through the
+  ScheduledTasks module with the XML passed as data, never built into a command line.
+- **Chain of custody** — case changes are appended to a SHA-256 hash chain and re-verified; tampering
+  outside Blazma is reported. A full rewrite of the case file can rebuild a chain, so the head hash is
+  printed in reports to be kept elsewhere.
 - **Threat hunting** — searches only local data and read-only live views (processes, connections,
   services, startup entries). Persistence flags are review prompts, never verdicts or automatic actions.
 - **OSINT** — public, unauthenticated sources only, started by the user. Pivot links are rebuilt in

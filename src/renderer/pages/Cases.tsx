@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, FileText, FolderOpen, Plus, ScrollText, Trash2 } from 'lucide-react';
-import type { CaseSummary, EvidenceKind, InvestigationCase, ReportFormat } from '../../shared/api';
+import { ArrowLeft, FileText, FolderOpen, Link2, Plus, RefreshCw, ScrollText, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react';
+import type { CaseSummary, CustodyEntry, CustodyVerification, EvidenceKind, InvestigationCase, ReportFormat } from '../../shared/api';
+import { problemText } from '../../core/custody-text';
 import type { Lang } from '../../core/i18n';
-import { Badge, Card, DataTable, EmptyState, ErrorState, IconTile, Ltr, Notice, Skeleton, Tabs, Toggle } from '../components/ui';
+import { Badge, Card, CopyButton, DataTable, EmptyState, ErrorState, IconTile, Ltr, Notice, Skeleton, Tabs, Toggle } from '../components/ui';
 import { useApp } from '../components/AppContext';
 import { useI18n } from '../i18n/I18nProvider';
 import { formatDateTime } from '../format';
 
 const KINDS: EvidenceKind[] = ['file', 'hash', 'ip', 'domain', 'url', 'email', 'process', 'connection', 'finding', 'other'];
-type Tab = 'evidence' | 'notes' | 'timeline' | 'report';
+type Tab = 'evidence' | 'notes' | 'timeline' | 'custody' | 'report';
 
 function NewCaseForm({ onCreated }: { onCreated: (id: string) => void }) {
   const { t } = useI18n();
@@ -181,6 +182,68 @@ function TimelineTab({ c, onChange }: { c: InvestigationCase; onChange: (c: Inve
   );
 }
 
+function CustodyTab({ c }: { c: InvestigationCase }) {
+  const { t, locale } = useI18n();
+  const [v, setV] = useState<CustodyVerification | null>(null);
+  const [log, setLog] = useState<CustodyEntry[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  // Re-read the case too: reports exported from the Report tab add entries this page hasn't seen.
+  const check = () =>
+    void Promise.all([window.blazma.cases.verifyCustody(c.id), window.blazma.cases.get(c.id)]).then(([r, g]) => {
+      if (!r.ok) return setErr(r.error);
+      setErr(null);
+      setV(r.data);
+      if (g.ok) setLog(g.data.custody ?? []);
+    });
+  useEffect(check, [c.id, c.updatedAt]);
+  if (err) return <Card><ErrorState code={err} onRetry={check} /></Card>;
+  if (!v) return <Card><Skeleton h={120} /></Card>;
+  const entries = [...log].reverse();
+  return (
+    <div className="col" style={{ gap: 12 }}>
+      <Card
+        title={t('custody.title')}
+        icon={Link2}
+        tone={v.intact ? 'green' : 'red'}
+        actions={<button className="btn sm" onClick={check}><RefreshCw size={13} /> {t('custody.recheck')}</button>}
+      >
+        <div className="col" style={{ gap: 12 }}>
+          <Notice tone={v.intact ? 'green' : 'red'} icon={v.intact ? ShieldCheck : ShieldAlert}>
+            <strong>{t(v.intact ? 'custody.intact' : 'custody.broken')}</strong>
+            {v.problems.length > 0 && <ul style={{ margin: '6px 0 0', paddingInlineStart: 18 }}>{v.problems.map((p, i) => <li key={i}>{problemText(p, t)}</li>)}</ul>}
+          </Notice>
+          {!v.fullHistory && v.startedAt && <Notice tone="amber">{t('custody.partial', { time: formatDateTime(locale, v.startedAt) })}</Notice>}
+          <dl className="kv">
+            <dt>{t('custody.head')}</dt>
+            <dd className="row" style={{ gap: 6 }}>{v.head ? <><Ltr mono breakAll>{v.head}</Ltr><CopyButton value={v.head} /></> : '—'}</dd>
+            <dt>{t('custody.startedLabel')}</dt>
+            <dd>{formatDateTime(locale, v.startedAt)}</dd>
+            <dt>{t('custody.entriesLabel')}</dt>
+            <dd><Ltr>{v.entries}</Ltr></dd>
+          </dl>
+          <div className="small dim">{t('custody.headHint')}</div>
+          <div className="tiny dim">{t('custody.limit')}</div>
+        </div>
+      </Card>
+      <Card>
+        <DataTable<CustodyEntry>
+          rowKey={(e) => String(e.seq)}
+          rows={entries}
+          maxHeight={420}
+          columns={[
+            { key: 'seq', label: '#', width: 44, render: (e) => <Ltr>{e.seq}</Ltr> },
+            { key: 'time', label: t('custody.col.time'), render: (e) => <span className="nowrap small">{formatDateTime(locale, e.time)}</span> },
+            { key: 'action', label: t('custody.col.action'), render: (e) => <div><div>{t(`custody.action.${e.action}`)}</div>{e.detail && <div className="tiny dim"><Ltr mono breakAll>{e.detail}</Ltr></div>}</div> },
+            { key: 'actor', label: t('custody.col.actor'), render: (e) => <Ltr mono>{e.actor}</Ltr> },
+            { key: 'digest', label: t('custody.col.digest'), render: (e) => (e.digest ? <span title={e.digest}><Ltr mono>{`${e.digest.slice(0, 12)}…`}</Ltr></span> : '—') },
+            { key: 'hash', label: t('custody.col.hash'), render: (e) => <span title={e.hash}><Ltr mono>{`${e.hash.slice(0, 12)}…`}</Ltr></span> },
+          ]}
+        />
+      </Card>
+    </div>
+  );
+}
+
 function ReportTab({ c }: { c: InvestigationCase }) {
   const { t, lang } = useI18n();
   const { toast, navigate } = useApp();
@@ -254,10 +317,11 @@ function CaseDetail({ id, onBack }: { id: string; onBack: () => void }) {
           <Badge tone={c.status === 'open' ? 'green' : 'gray'}>{t(`cases.status.${c.status}`)}</Badge>
         </div>
       </div>
-      <Tabs<Tab> value={tab} onChange={setTab} items={(['evidence', 'notes', 'timeline', 'report'] as const).map((x) => ({ id: x, label: t(`cases.tab.${x}`) }))} />
+      <Tabs<Tab> value={tab} onChange={setTab} items={(['evidence', 'notes', 'timeline', 'custody', 'report'] as const).map((x) => ({ id: x, label: t(`cases.tab.${x}`) }))} />
       {tab === 'evidence' && <EvidenceTab c={c} onChange={setC} />}
       {tab === 'notes' && <NotesTab c={c} onChange={setC} />}
       {tab === 'timeline' && <TimelineTab c={c} onChange={setC} />}
+      {tab === 'custody' && <CustodyTab c={c} />}
       {tab === 'report' && <ReportTab c={c} />}
     </div>
   );

@@ -796,7 +796,10 @@
     "hash_extractor_missing": "John’s hash extractor for this file type wasn’t found next to john.exe (e.g. rar2john.exe). Re-extract the John \"jumbo\" download so its run/ folder is complete, then pick john.exe again.",
     "hash_extractor_needs_john": "To recover this file, also set the path to John the Ripper: its hash extractors (rar2john, zip2john…) are needed to prepare the file — even when hashcat does the work.",
     "hash_extractor_script": "This file type (7z / PDF / Office) needs a script extractor that requires Perl or Python. Install it, or extract the hash yourself and open the hash file instead.",
-    "hashcat_type_unsupported": "hashcat can’t be mapped to this file’s hash type automatically. Use John the Ripper for this file instead."
+    "hashcat_type_unsupported": "hashcat can’t be mapped to this file’s hash type automatically. Use John the Ripper for this file instead.",
+    "evidence_not_found": "This evidence item no longer exists.",
+    "schedule_dev_build": "Scheduling needs the installed (or portable) Blazma Cyber, not a development build.",
+    "schedule_failed": "Windows Task Scheduler refused the change. Try again, or check that Task Scheduler is running."
   },
   "defender": {
     "status": {
@@ -1425,7 +1428,8 @@
       "evidence": "Evidence",
       "notes": "Analyst notes",
       "timeline": "Timeline",
-      "report": "Report"
+      "report": "Report",
+      "custody": "Chain of custody"
     },
     "evidenceSep": "Evidence is what was observed; notes are your interpretation. They are kept separate.",
     "addEvidence": "Add evidence",
@@ -1594,7 +1598,8 @@
       "startup": "Startup",
       "task": "Scheduled task",
       "service": "Service"
-    }
+    },
+    "ownTask": "Blazma's scheduled checkup"
   },
   "osint": {
     "title": "OSINT Workspace",
@@ -3093,7 +3098,40 @@
     "reportFooter": "Generated locally by Blazma Cyber. Only results and counts are included — no files, addresses or personal data.",
     "savePdf": "Save report (PDF)",
     "saveHtml": "Save report (HTML)",
-    "reportSaved": "Report saved — it is also in Reports."
+    "reportSaved": "Report saved — it is also in Reports.",
+    "schedule": {
+      "title": "Repeat automatically",
+      "sub": "Blazma can run this checkup on a schedule and tell you the result in a notification.",
+      "frequency": "How often",
+      "daily": "Every day",
+      "weekly": "Every week",
+      "day": "Day",
+      "time": "Time",
+      "turnOn": "Turn on",
+      "update": "Save changes",
+      "turnOff": "Turn off",
+      "saved": "Scheduled checkup saved",
+      "removed": "Scheduled checkup turned off",
+      "on": {
+        "daily": "On: every day at {{time}}",
+        "weekly": "On: every {{day}} at {{time}}"
+      },
+      "next": "Next run: {{date}}",
+      "last": "Last run: {{date}}",
+      "state": {
+        "other_copy": "The scheduled task starts a different copy of Blazma (was it moved?). Save to point it at this one.",
+        "edited": "The scheduled task was changed outside Blazma. Save to restore Blazma's schedule, or turn it off.",
+        "disabled": "The scheduled task is turned off in Windows Task Scheduler."
+      },
+      "how": "Uses a Windows Task Scheduler task for your account only (no administrator rights): it opens Blazma in the background while you are signed in, runs the same read-only checkup, and shows a notification. Missed runs (PC off) happen at the next sign-in. Remove it here at any time."
+    },
+    "notify": {
+      "ok": "Scheduled checkup: everything looks good",
+      "attention": "Scheduled checkup: {{n}} area(s) deserve a look",
+      "problem": "Scheduled checkup: {{n}} area(s) need attention",
+      "unavailable": "Scheduled checkup: nothing could be checked",
+      "body": "Click to open the results in Blazma Cyber."
+    }
   },
   "ports": {
     "title": "Open ports on this PC",
@@ -3185,5 +3223,56 @@
     },
     "analyze": "Analyze",
     "howToDisable": "To turn a program off: Windows Settings → Apps → Startup (or Task Manager → Startup apps). If you do not recognise an unsigned program, analyze it first."
+  },
+  "custody": {
+    "title": "Chain of custody",
+    "intact": "Intact — every recorded change checks out",
+    "broken": "Not intact — something changed outside the recorded history",
+    "head": "Head hash",
+    "startedLabel": "Chain started",
+    "entriesLabel": "Entries",
+    "headHint": "Keep the head hash somewhere else (for example in an email to yourself or a printed report). If it still matches later, nothing in this case was changed since then.",
+    "partial": "This case is older than the chain of custody: changes before {{time}} aren't covered.",
+    "limit": "Detects changes made outside Blazma or by mistake. Someone who can rewrite the whole case file could rebuild a chain — that is why the head hash is worth keeping elsewhere.",
+    "recheck": "Check again",
+    "copy": "Copy",
+    "copied": "Head hash copied",
+    "show": "Show the log ({{n}})",
+    "hide": "Hide the log",
+    "col": {
+      "time": "Time",
+      "action": "Action",
+      "actor": "By",
+      "digest": "Content SHA-256",
+      "hash": "Entry hash"
+    },
+    "kind": {
+      "evidence": "Evidence",
+      "note": "Note",
+      "event": "Event"
+    },
+    "action": {
+      "case_created": "Case created",
+      "custody_started": "Chain started (existing case)",
+      "case_edited": "Case details changed",
+      "report_exported": "Report exported",
+      "evidence_added": "Evidence added",
+      "evidence_recorded": "Existing evidence recorded",
+      "evidence_removed": "Evidence removed",
+      "note_added": "Note added",
+      "note_recorded": "Existing note recorded",
+      "note_edited": "Note edited",
+      "note_removed": "Note removed",
+      "event_added": "Event added",
+      "event_recorded": "Existing event recorded"
+    },
+    "problem": {
+      "no_log": "This case has no chain of custody.",
+      "chain_broken": "Entry {{seq}} doesn't fit the chain — the log was edited, shortened or re-ordered from there on.",
+      "case_changed": "The case details differ from the last recorded version.",
+      "changed": "{{kind}} {{subject}} differs from what was recorded.",
+      "unrecorded": "{{kind}} {{subject}} isn't in the record (added outside Blazma).",
+      "missing": "{{kind}} {{subject}} disappeared without its removal being recorded."
+    }
   }
 }

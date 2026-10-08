@@ -116,6 +116,15 @@ const api: BlazmaApi = {
     last: () => invoke('checkup:last'),
     save: (summary) => invoke('checkup:save', summary),
     report: (input, language, format) => invoke('checkup:report', input, language, format),
+    takeScheduled: () => invoke('checkup:takeScheduled'),
+    onScheduled: (cb) => {
+      const listener = () => cb();
+      ipcRenderer.on('checkup:scheduled', listener);
+      return () => ipcRenderer.removeListener('checkup:scheduled', listener);
+    },
+    schedule: () => invoke('checkup:schedule'),
+    setSchedule: (cfg) => invoke('checkup:setSchedule', cfg),
+    removeSchedule: () => invoke('checkup:removeSchedule'),
   },
   fim: {
     list: () => invoke('fim:list'),
@@ -174,6 +183,7 @@ const api: BlazmaApi = {
     updateNote: (id, noteId, text) => invoke('cases:updateNote', id, noteId, text),
     removeNote: (id, noteId) => invoke('cases:removeNote', id, noteId),
     addEvent: (id, title, detail, time) => invoke('cases:addEvent', id, title, detail, time),
+    verifyCustody: (id) => invoke('cases:verifyCustody', id),
   },
   reports: {
     generate: (caseId, options) => invoke('reports:generate', caseId, options),
