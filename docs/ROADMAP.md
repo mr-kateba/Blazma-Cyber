@@ -20,7 +20,7 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 - DONE Settings (general, privacy, API keys, engines, about)
 - DONE Structured logging with redaction
 - DONE Local configuration (validated, atomic writes)
-- DONE Privacy architecture: NetworkGate, Offline Mode (default ON), Network Activity log, clear-data controls
+- DONE Privacy architecture: NetworkGate, Offline Mode (default ON until 1.1.7, now one switch away), Network Activity log, clear-data controls
 - DONE Secure API-key storage (Electron safeStorage / DPAPI; refuses plaintext)
 - DONE PowerShell launcher `Start-Blazma.ps1`
 - DONE Windows-only PowerShell paths verified on a real Windows machine (GitHub Actions windows-latest = Windows Server 2025, build 26100): system facts, Defender/firewall status, Authenticode, forensics collectors, network toolkit
@@ -146,6 +146,10 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 
 ## v1.1.6 — DONE
 - DONE Theme: the actual Blazma family palette (graphite #121216/#1c1c22, accent #FF6D00, light #c2410c, solid orange primary buttons), matching Boost/Get/Crosshair/AI/NT; window chrome, charts and reports follow; README header aligned with the family (centered logo + badges); CLAUDE.md gets the family Authorship section. Replaces the sky accent of 1.1.5, which came from an outdated copy of blazma-nt
+
+## v1.1.7 — DONE
+- DONE IP Intelligence globe: the approximate location on a 3D Earth (NASA Blue Marble + Black Marble, bundled, public domain), day/night from the real subsolar point, local time there, drag/keys/zoom; WebGL 2 with a CPU fallback for PCs without a GPU; math in src/core/globe.ts (unit-tested), both painters E2E-tested
+- DONE Online lookups on by default (owner decision: many checks need the Internet); still only on demand and logged; one-time migration of settings saved by ≤1.1.6
 
 ## Phase 7 — Polish
 - DONE Terminal: opens the regular Windows terminal (Windows Terminal, else PowerShell) in its own window — no in-app terminal by decision (the GUI never runs commands from user input)

@@ -8,10 +8,14 @@ Blazma Cyber is **local-first**. Your files, scans and investigations stay on yo
 - No automatic file uploads — ever.
 - Scan results are never sent to any server operated by the Blazma Cyber project (there is none).
 
-## Offline Mode (on by default)
+## Offline Mode (off by default since 1.1.7)
+Many checks need the Internet, so online lookups are allowed by default — but none runs by
+itself: each one starts only when you press its button and is listed in Network Activity.
 When Offline Mode is on (**Local only**), every optional external request is refused *before*
-a connection is opened. Local modules keep working. Turn it off in the Privacy Center to allow
-lookups you start yourself.
+a connection is opened. Local modules keep working. Turn it on in the Privacy Center.
+(Settings saved by 1.1.6 and earlier, when Offline Mode was on by default, move to online once.)
+
+The IP Intelligence globe is drawn from imagery bundled with the app; showing it sends nothing.
 
 ## External requests
 When Offline Mode is off, Blazma Cyber contacts external services **only when you start an action**

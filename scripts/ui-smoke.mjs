@@ -56,7 +56,9 @@ const stubOpen = (p) => app.evaluate(({ dialog }, x) => { dialog.showOpenDialog 
 const app = await electron.launch({
   // require('electron') returns the binary path and downloads it first if npm skipped that step.
   executablePath: createRequire(import.meta.url)('electron'),
-  args: [...(process.platform === 'linux' ? ['--no-sandbox'] : []), root],
+  // BLAZMA_E2E_WEBGL=1 lets Chromium use its software GPU, so the globe's WebGL path runs on machines
+  // without a graphics driver (otherwise the globe's CPU painter is exercised).
+  args: [...(process.platform === 'linux' ? ['--no-sandbox'] : []), ...(process.env.BLAZMA_E2E_WEBGL === '1' ? ['--enable-unsafe-swiftshader'] : []), root],
   env: { ...process.env, BLAZMA_DATA_DIR: dataDir, ...(process.platform === 'linux' ? { XDG_CONFIG_HOME: xdg } : {}) },
 });
 
@@ -85,6 +87,14 @@ try {
   await win.waitForTimeout(7000); // let CPU samples accumulate (real data)
   await assertClearOfCaptionButtons(win, 'ar');
   await win.screenshot({ path: join(out, '02-dashboard-ar.png') });
+
+  // Online lookups are the default (still only when the user starts one): the top bar says so.
+  // The rest of this walk-through runs in Offline Mode, so no step can reach a real server.
+  await win.locator('.mode-pill.online').waitFor();
+  await win.locator('.nav-item', { hasText: 'مركز الخصوصية' }).click();
+  await win.getByRole('switch', { name: 'وضع عدم الاتصال' }).click();
+  await win.locator('.mode-pill.local').waitFor();
+  await win.locator('.nav-item', { hasText: 'لوحة التحكم' }).click();
 
   // Device Security Score: the dashboard hero and the page. Real score on Windows; elsewhere the
   // app says it's Windows-only (never a made-up score).
@@ -129,7 +139,7 @@ try {
   await assertClearOfCaptionButtons(win, 'en');
   await win.screenshot({ path: join(out, '03-dashboard-en.png') });
 
-  // 4) Offline Mode blocks the external public-IP lookup (default is Local Only)
+  // 4) Offline Mode blocks the external public-IP lookup
   const blocked = await win.evaluate(() => window.blazma.privacy.publicIp());
   assert.deepEqual(blocked, { ok: false, error: 'offline_mode' });
 
@@ -222,7 +232,7 @@ try {
     await win.screenshot({ path: join(out, '15-security-center-ar.png') });
   }
 
-  // 5c) Phase 3: intelligence. Offline Mode (default) must block every external source.
+  // 5c) Phase 3: intelligence. Offline Mode must block every external source.
   await win.getByRole('button', { name: 'English' }).click();
   await win.locator('.nav-item', { hasText: 'IP Intelligence' }).click();
   await win.getByText('Offline Mode is on: all external sources are blocked').waitFor();
@@ -234,6 +244,45 @@ try {
   await win.getByRole('button', { name: 'العربية' }).click();
   await win.waitForTimeout(300);
   await win.screenshot({ path: join(out, '16-ip-intel-offline-ar.png'), fullPage: true });
+
+  // The globe: the lookup's answer is stubbed at the IPC boundary (ipinfo parsing is unit-tested),
+  // so no server is contacted. The Earth is drawn from the bundled NASA imagery with WebGL and the
+  // looked-up coordinates are marked on it.
+  await app.evaluate(({ ipcMain }) => {
+    ipcMain.removeHandler('intel:ip');
+    ipcMain.handle('intel:ip', async () => ({
+      ok: true,
+      data: {
+        ip: '8.8.8.8', version: 4, scope: 'public', reverseDns: null, rdap: null, asn: null, tor: null, reputation: [],
+        geo: { provider: 'ipinfo.io', city: 'Frankfurt am Main', region: 'Hesse', country: 'DE', loc: '50.1155,8.6842', timezone: 'Europe/Berlin', org: 'AS15169 Google LLC' },
+        sources: [{ id: 'geo', external: true, ok: true, queriedAt: new Date().toISOString() }],
+      },
+    }));
+  });
+  await win.locator('input.input').first().fill('8.8.8.8');
+  await win.getByRole('button', { name: 'استعلام', exact: true }).click();
+  await win.locator('.globe-wrap').waitFor({ timeout: 30000 });
+  await win.locator('.globe-label', { hasText: 'فرانكفورت' }).or(win.locator('.globe-label', { hasText: 'Frankfurt' })).first().waitFor({ state: 'visible', timeout: 15000 });
+  await win.waitForTimeout(2200); // the fly-to animation
+  const painter = await win.locator('.globe-wrap').getAttribute('data-renderer');
+  if (process.env.BLAZMA_E2E_WEBGL === '1') assert.equal(painter, 'webgl');
+  else assert.ok(painter === 'webgl' || painter === 'software', `globe painter: ${painter}`);
+  const earth = await win.evaluate(() => {
+    const gl = document.querySelector('.globe-canvas');
+    const c = document.createElement('canvas');
+    c.width = gl.width;
+    c.height = gl.height;
+    const g = c.getContext('2d');
+    g.drawImage(gl, 0, 0);
+    // Day or night in Frankfurt, the lit hemisphere, city lights and the atmosphere rim are bright.
+    const d = g.getImageData(0, 0, c.width, c.height).data;
+    let bright = 0;
+    for (let i = 0; i < d.length; i += 16) if (d[i] + d[i + 1] + d[i + 2] > 150) bright++;
+    return bright / (d.length / 16);
+  });
+  assert.ok(earth > 0.01, `the globe should be drawn (bright share ${earth})`);
+  await win.locator('.globe-wrap').scrollIntoViewIfNeeded();
+  await win.screenshot({ path: join(out, '48-ip-globe-ar.png') });
 
   // "Is this site trustworthy?" never guesses: offline, it says there isn't enough information.
   await win.locator('.nav-item', { hasText: 'معلومات النطاقات' }).click();
@@ -606,7 +655,7 @@ try {
   assert.ok(!(await win.content()).includes('not-shown-123'), 'Wi-Fi password must never be shown');
 
   // Phase D2: "Was my password leaked?" — local observations while typing; the check itself is an
-  // external request, so Offline Mode (default) blocks it; the field is cleared either way.
+  // external request, so Offline Mode blocks it; the field is cleared either way.
   await win.locator('.nav-item', { hasText: 'هل تسرّبت كلمة مروري؟' }).click();
   const pwBox = win.getByRole('textbox', { name: 'كلمة المرور' });
   await pwBox.fill('qwerty1990');
@@ -751,7 +800,7 @@ try {
   await win.locator('.nav-item', { hasText: 'Appearance' }).click();
   await win.getByText('Theme').first().waitFor();
   await win.screenshot({ path: join(out, '10-settings-en.png') });
-  // Phase F4: manual update check — Offline Mode (default) blocks it; nothing is fetched or installed.
+  // Phase F4: manual update check — Offline Mode blocks it; nothing is fetched or installed.
   await win.getByRole('tab', { name: 'About' }).click();
   await win.getByRole('button', { name: 'Check for updates' }).click();
   await win.getByText('Blocked: Offline Mode is on', { exact: false }).first().waitFor();

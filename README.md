@@ -32,6 +32,7 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 ---
 
 ## Table of contents
+- [What's new in 1.1.7](#whats-new-in-117)
 - [What's new in 1.1.6](#whats-new-in-116)
 - [What's new in 1.1.5](#whats-new-in-115)
 - [What's new in 1.1.4](#whats-new-in-114)
@@ -49,6 +50,16 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 - [License](#license)
 
 ---
+
+## What's new in 1.1.7
+- **A real globe in IP Intelligence.** The approximate location of an address is marked on a 3D
+  Earth made from NASA's Blue Marble and Black Marble imagery (bundled — the globe itself needs no
+  Internet), with day and night shaded for the current time and the local time there. Drag to
+  rotate; works with or without a graphics card.
+- **Online lookups are on by default.** Many checks (IP/domain intelligence, reputation, leaked
+  passwords, updates) need the Internet, so the app no longer starts in Offline Mode. Nothing is
+  sent by itself — every lookup still starts only when you press its button and is listed in
+  Network Activity. Offline Mode is one switch away in the Privacy Center.
 
 ## What's new in 1.1.6
 - **The real Blazma family look.** Blazma Cyber now uses the same palette as Blazma Boost, Get,
@@ -111,8 +122,8 @@ smart search (Ctrl+K), a light theme, and offline device-manufacturer names. Ful
 ---
 
 ## Why Blazma Cyber
-- **Local-first & private.** Everything runs on your machine. **Offline Mode is on by default**; no
-  external request leaves until you allow it, and every attempt is listed in Network Activity.
+- **Local-first & private.** Everything runs on your machine. Online lookups run **only when you
+  start them**, every attempt is listed in Network Activity, and **Offline Mode** blocks them all with one switch.
 - **Never fabricates results.** When something can't be determined, it says *unavailable* with the
   reason — never a placeholder number or a fake "clean".
 - **Integrates, doesn't reinvent.** It drives mature engines (Microsoft Defender, YARA-X, capa,
@@ -143,7 +154,7 @@ smart search (Ctrl+K), a light theme, and offline device-manufacturer names. Ful
   that can run code. Suggested places: Startup folders, the hosts folder, PowerShell profiles.
 
 ### 🔎 Intelligence
-- **IP / Domain Intelligence** — reverse DNS, RDAP, Team Cymru ASN, approximate location (ipinfo),
+- **IP / Domain Intelligence** — reverse DNS, RDAP, Team Cymru ASN, approximate location (ipinfo) on a 3D globe,
   Tor exit check, DNS records, SPF/DMARC, TLS certificate, hosting infrastructure.
 - **Reputation Center** — VirusTotal, AbuseIPDB, Shodan and abuse.ch (MalwareBazaar, URLhaus,
   ThreatFox — one free key) with **your own** keys (hashes, never uploads).
@@ -207,7 +218,7 @@ smart search (Ctrl+K), a light theme, and offline device-manufacturer names. Ful
 - **Themes** — deep navy, midnight black, light, or match Windows.
 
 ### 🔒 Privacy & language
-- **Privacy Center** — Offline Mode (on by default), a log of every external request, and clear-data controls.
+- **Privacy Center** — Offline Mode (one switch, off by default), a log of every external request, and clear-data controls.
 - **Arabic & English** — full translation, live RTL/LTR switching, technical values kept LTR.
 
 | | |
@@ -300,7 +311,7 @@ Optional, **user-installed** (Blazma never downloads or runs them by itself):
 ---
 
 ## Project status
-**v1.1.6 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
+**v1.1.7 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
 base) in CI: PowerShell facts, Defender status & EICAR file scan, Authenticode, forensics, the
 network tools, a real pktmon capture, the Wi-Fi reader, startup/signature review, the full UI
 end-to-end, and the NSIS installer build.

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, Earth, Globe, MapPin, Network, Route, Search, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Building2, Earth, Globe, Globe2, MapPin, Network, Route, Search, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { REPUTATION_FOR_KIND, type IpLookupOptions, type IpLookupResult, type ReputationService } from '../../shared/api';
 import { isIP } from '../../core/validation';
 import { Badge, Card, ErrorState, IconTile, Ltr, Notice, Progress } from '../components/ui';
 import { hasRepKey, KV, OfflineBanner, OptionPills, ReputationCard, SourcesTable, useKeyStatus } from '../components/intel';
 import { AddToCase } from '../components/AddToCase';
+import { EarthGlobe } from '../components/EarthGlobe';
+import { parseLatLon } from '../../core/globe';
 import { useApp } from '../components/AppContext';
 import { useI18n } from '../i18n/I18nProvider';
 import { formatDateTime } from '../format';
@@ -34,6 +36,7 @@ export function IpIntel() {
 
   const r = state.result;
   const hosting = r?.reputation.find((x) => x.service === 'abuseipdb')?.usageType;
+  const spot = parseLatLon(r?.geo?.loc);
 
   return (
     <div className="page">
@@ -110,6 +113,12 @@ export function IpIntel() {
             </div>
             {r.scope !== 'public' && <Notice tone="cyan">{t('ipintel.scopeNote')}</Notice>}
 
+            {r.geo && spot && (
+              <Card title={t('ipintel.globe.title')} subtitle={t('ipintel.globe.sub')} icon={Globe2} tone="amber">
+                <EarthGlobe lat={spot.lat} lon={spot.lon} label={placeName(r.geo, locale) || `${spot.lat.toFixed(2)}, ${spot.lon.toFixed(2)}`} timezone={r.geo.timezone} />
+              </Card>
+            )}
+
             <div className="grid g-2">
               {opts.rdap && (
                 <Card title={t('ipintel.network')} explain="ip_network" icon={Network} tone="blue">
@@ -185,6 +194,19 @@ export function IpIntel() {
       </div>
     </div>
   );
+}
+
+/** "Frankfurt am Main, Germany" in the UI language (country codes become localized names). */
+function placeName(geo: { city: string | null; country: string | null }, locale: string): string {
+  let country = geo.country;
+  if (country && /^[A-Z]{2}$/.test(country)) {
+    try {
+      country = new Intl.DisplayNames([locale], { type: 'region' }).of(country) ?? country;
+    } catch {
+      /* keep the code */
+    }
+  }
+  return [geo.city, country].filter(Boolean).join(locale.startsWith('ar') ? '، ' : ', ');
 }
 
 /** Explains why a section is empty using the source's recorded status. */

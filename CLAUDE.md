@@ -100,7 +100,7 @@ docs/                    ARCHITECTURE, ROADMAP, DEVELOPMENT, screenshots/
 
 ## Security / privacy
 
-See SECURITY.md and PRIVACY.md. Defaults: **Offline Mode ON** on first launch; history on;
+See SECURITY.md and PRIVACY.md. Defaults: **online lookups allowed** (still only when the user starts one; Offline Mode is one switch away); history on;
 API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encryption is unavailable.
 
 ## Testing rules
@@ -152,7 +152,7 @@ API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encrypti
   capture), Wi-Fi Center, Nmap service scan (user-installed), light theme, smart search (Ctrl+K),
   file integrity monitor.
 - Latest audit: docs/AUDIT-REPORT.md (3 bugs found and fixed; weaknesses and proposed features listed).
-- Released: v1.0.0, v1.0.1, v1.1.0 (Phase G), v1.1.1 (Phase H: recovery resource control, new-device watch, icon/stop-early fixes), v1.1.2 (Phase I: checkup report, Outlook .msg, QR Code Check), v1.1.3 (encrypted-file detection reads RAR/7z/Office structures), v1.1.4 (recovery extracts the hash with *2john before running the engine), v1.1.5 (accent change), v1.1.6 (the Blazma family orange/graphite palette, family README header and Authorship rule) — 2026-10. NOT YET: signed installer.
+- Released: v1.0.0, v1.0.1, v1.1.0 (Phase G), v1.1.1 (Phase H: recovery resource control, new-device watch, icon/stop-early fixes), v1.1.2 (Phase I: checkup report, Outlook .msg, QR Code Check), v1.1.3 (encrypted-file detection reads RAR/7z/Office structures), v1.1.4 (recovery extracts the hash with *2john before running the engine), v1.1.5 (accent change), v1.1.6 (the Blazma family orange/graphite palette, family README header and Authorship rule), v1.1.7 (IP globe, online by default) — 2026-10. NOT YET: signed installer.
 - Verified on Linux (Xvfb) locally and on real Windows (Server 2025, build 26100) in CI: PowerShell
   facts, Defender status + EICAR file scan, Authenticode, forensics, network, full UI E2E, NSIS build.
   Not yet verified: Windows 10/11 desktop specifics (title-bar overlay, launcher, installer
@@ -168,7 +168,7 @@ API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encrypti
 | 2026-09 | capa/DIE findings are weak evidence (capa ≥4 risky groups = strong); RL family rules are definitive, RL PUA is strong | Capabilities and packers also appear in legitimate software |
 | 2026-09 | Electron + React + TypeScript | Best RTL/Arabic rendering, rich UI, testable on any OS; hardened (sandbox, contextIsolation, CSP). Alternatives in docs/ARCHITECTURE.md |
 | 2026-09 | Custom tiny i18n instead of i18next | ~60 lines, fully tested, no dependency |
-| 2026-09 | Offline Mode default ON | Privacy-first; user opts in to online lookups |
+| 2026-10 | Offline Mode default OFF (was ON until 1.1.6); settings saved by ≤1.1.6 move to online once (`schema` 2 in settings.json) | Owner decision: many checks need the Internet. Lookups still start only on a user action, go through NetworkGate and are logged |
 | 2026-09 | PowerShell via `-Command` + env-var args | No `-EncodedCommand`/`-ExecutionPolicy Bypass` (both are classic attacker IOCs our own threat hunting should flag) |
 | 2026-09 | Windows facts: single in-flight PowerShell, failures cached 5 min, dashboard never waits on PowerShell | Audit found a PowerShell process storm on slow/failed queries |
 | 2026-09 | YARA-X via official `yr` CLI (user-installed) | Maintained successor by VirusTotal, BSD-3; CLI keeps a process boundary and needs no native Node addon |
@@ -212,3 +212,4 @@ API keys only via Electron `safeStorage` (DPAPI) — refuse to store if encrypti
 | 2026-09 | Outlook .msg = own read-only CFB parser (src/core/cfb.ts) → MIME (src/core/msg.ts) → the unchanged email analysis; no transport headers = honest "can't verify" notice | No dependency for a small, well-specified format; one analysis path for .eml and .msg |
 | 2026-09 | Encryption detection reads the container's own structures (RAR blocks, 7z index, OLE streams); when the file can't confirm either way it is `undetermined` (never a guessed yes/no) and the user may still continue | A signature alone says nothing about a password; the owner of a protected RAR must not be told it isn't protected |
 | 2026-09 | QR decoding runs in the sandboxed renderer (jsQR, Apache-2.0, bundled); main only reads bytes with size/signature/pixel limits; Wi-Fi passwords and 2FA secrets are never returned; links are never opened | Untrusted image parsing stays out of the main process; a QR code must never act by itself |
+| 2026-10 | IP globe = bundled NASA Blue/Black Marble (public domain) on a WebGL 2 sphere, CPU painter when WebGL is unavailable; day/night from the computed subsolar point; only the looked-up coordinates are marked, no accuracy radius | Realistic and offline; ipinfo gives no accuracy, so drawing a radius would be a fabricated result; many PCs/VMs have no GPU |

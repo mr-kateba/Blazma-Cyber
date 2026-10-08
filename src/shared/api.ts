@@ -65,8 +65,9 @@ export const DEFAULT_SETTINGS: Settings = {
   uiMode: 'simple',
   theme: 'dark',
   startPage: 'dashboard',
-  // Privacy-first default: nothing leaves the machine until the user opts in.
-  offlineMode: true,
+  // Online lookups are allowed but never automatic: nothing leaves the machine until the user
+  // starts a lookup. Offline Mode (local only) is one switch away in the Privacy Center.
+  offlineMode: false,
   keepHistory: true,
   notifications: true,
   logLevel: 'INFO',
