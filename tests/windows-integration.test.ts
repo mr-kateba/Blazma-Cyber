@@ -310,3 +310,25 @@ describe.runIf(WIN)('Windows integration: scheduled checkup task', () => {
     expect((await removeSchedule(exe, id)).state).toBe('none');
   }, 120000);
 });
+
+describe.runIf(WIN)('Windows integration: live network speed', () => {
+  it('samples the physical adapters through one long-lived PowerShell', async () => {
+    const { ThroughputMonitor } = await import('../src/main/services/throughput');
+    const m = new ThroughputMonitor();
+    try {
+      let s = m.status();
+      expect(s.available).toBe(true);
+      const deadline = Date.now() + 30000;
+      while (s.rx === null && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 500));
+        s = m.status();
+      }
+      // A runner always has at least one connected adapter; rates are real, non-negative numbers.
+      expect(s.adapters.length).toBeGreaterThan(0);
+      expect(s.rx).toBeGreaterThanOrEqual(0);
+      expect(s.tx).toBeGreaterThanOrEqual(0);
+    } finally {
+      m.stop();
+    }
+  }, 60000);
+});

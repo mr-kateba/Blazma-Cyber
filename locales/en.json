@@ -113,7 +113,10 @@
       "KB": "KB",
       "MB": "MB",
       "GB": "GB",
-      "TB": "TB"
+      "TB": "TB",
+      "kbps": "kbps",
+      "Mbps": "Mbps",
+      "Gbps": "Gbps"
     },
     "duration": {
       "ms": "{{n}} ms",
@@ -176,6 +179,15 @@
       "daysAgo": "{{n}} days ago",
       "checkupStale": "Last full checkup {{when}} — time for a new one",
       "checkupLast": "Last full checkup: {{verdict}} ({{when}})"
+    },
+    "net": {
+      "title": "Network speed now",
+      "down": "Download",
+      "up": "Upload",
+      "sampling": "Measuring…",
+      "none": "No connected network adapter.",
+      "note": "Measured only while this page is open, from the connected adapters' own counters.",
+      "via": "Via:"
     }
   },
   "status": {
@@ -799,7 +811,8 @@
     "hashcat_type_unsupported": "hashcat can’t be mapped to this file’s hash type automatically. Use John the Ripper for this file instead.",
     "evidence_not_found": "This evidence item no longer exists.",
     "schedule_dev_build": "Scheduling needs the installed (or portable) Blazma Cyber, not a development build.",
-    "schedule_failed": "Windows Task Scheduler refused the change. Try again, or check that Task Scheduler is running."
+    "schedule_failed": "Windows Task Scheduler refused the change. Try again, or check that Task Scheduler is running.",
+    "throughput_unavailable": "The network counters can't be read on this computer."
   },
   "defender": {
     "status": {

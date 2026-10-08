@@ -44,3 +44,10 @@ export function formatNumber(locale: string, n: number, digits = 0): string {
 export function newTaskId(): string {
   return crypto.randomUUID();
 }
+
+/** Network speed from bytes per second, in bits like an Internet plan (kbps / Mbps / Gbps). */
+export function formatBitRate(t: T, bytesPerSec: number): string {
+  const bits = bytesPerSec * 8;
+  const [v, unit] = bits >= 1e9 ? [bits / 1e9, 'Gbps'] : bits >= 1e6 ? [bits / 1e6, 'Mbps'] : [bits / 1e3, 'kbps'];
+  return `${v.toFixed(v >= 100 ? 0 : 1)} ${t(`common.units.${unit}`)}`;
+}

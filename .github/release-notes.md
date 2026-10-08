@@ -7,6 +7,7 @@
 ### الجديد في 1.1.8
 - **سلسلة حفظ الأدلة للقضايا:** كل تغيير في القضية (إضافة دليل أو حذفه، تعديل ملاحظة، الأحداث، بيانات القضية، التقارير المصدَّرة مع بصمة ملفها) يُسجَّل مع من ومتى في سجل مترابط بالبصمات (SHA-256). البرنامج يتحقق منه ويُظهر بالضبط ما تغيّر خارج Blazma. احتفظ بـ «البصمة الأخيرة» (مطبوعة في كل تقرير قضية) لتثبت لاحقًا أن شيئًا لم يتغيّر.
 - **فحص دوري مجدول:** «تكرار تلقائي» في صفحة الفحص الشامل — يوميًا أو أسبوعيًا — عبر «جدولة المهام» في Windows لحسابك فقط وبلا صلاحيات مسؤول. يفتح Blazma في الخلفية، يشغّل نفس الفحص للقراءة فقط، ويُظهر النتيجة في إشعار.
+- **سرعة الشبكة الآن** في لوحة التحكم: التنزيل والرفع لحظيًا، من عدّادات محوّلات الشبكة المتصلة، ولا تُقاس إلا واللوحة مفتوحة.
 
 سابقًا في 1.1.7: الكرة الأرضية الحقيقية في «معلومات IP»، والاستعلامات عبر الإنترنت مفعّلة افتراضيًا.
 
@@ -36,6 +37,7 @@ Privacy-first, local-first, bilingual (Arabic/English) defensive cybersecurity w
 **New in 1.1.8**
 - **Chain of custody for cases:** every change to a case (evidence added or removed, notes edited, events, case details, exported reports with the file's SHA-256) is recorded with who and when in a SHA-256 hash chain. Blazma re-checks it and shows exactly what changed outside the app. Keep the head hash (printed in every case report) to prove later that nothing changed.
 - **Scheduled checkup:** *Repeat automatically* on the Full checkup page — daily or weekly — through a Windows Task Scheduler task for your account only, no administrator rights. Blazma opens in the background, runs the same read-only checkup and shows the result as a notification.
+- **Live network speed** on the dashboard: download and upload right now, from the connected adapters' own counters, sampled only while the dashboard is open.
 
 Earlier in 1.1.7: the real globe in IP Intelligence; online lookups on by default.
 

@@ -53,6 +53,7 @@ import { SecretStore, isApiKeyService } from './services/secrets';
 import { SettingsService } from './services/settings';
 import { applyWindowTheme } from './window-theme';
 import { logger, setLogLevel } from './services/logger';
+import { ThroughputMonitor } from './services/throughput';
 import { removeSchedule, ScheduleError, scheduleStatus, setSchedule } from './services/schedule';
 import { sanitizeSchedule } from '../core/schedule';
 import type { ScheduledRun } from './scheduled-run';
@@ -246,6 +247,9 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
 
   handle('system:snapshot', async () => ({ ok: true, data: await getSystemSnapshot() }));
   handle('system:security', async () => ({ ok: true, data: (await getWindowsFacts()).security }));
+  const throughput = new ThroughputMonitor();
+  app.on('before-quit', () => throughput.stop());
+  handle('system:throughput', () => ({ ok: true, data: throughput.status() }));
   handle('downloads:state', () => ({ ok: true, data: downloads.state() }));
   handle('extensions:audit', async () => ({ ok: true, data: await auditExtensions() }));
   handle('device:tamper', async () => ({ ok: true, data: await tamperChecks() }));

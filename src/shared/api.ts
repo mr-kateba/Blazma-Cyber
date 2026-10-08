@@ -1001,6 +1001,16 @@ export interface ReportOptions {
   includeTimeline: boolean;
 }
 
+/** Live network speed (dashboard). */
+export interface ThroughputStatus {
+  available: boolean;
+  reason?: string;
+  /** Bytes per second over the real, connected adapters; null while the first two samples are taken. */
+  rx: number | null;
+  tx: number | null;
+  adapters: string[];
+}
+
 /** The scheduled checkup's Windows task as it is right now. */
 export interface ScheduleStatus {
   supported: boolean;
@@ -1138,6 +1148,8 @@ export interface BlazmaApi {
   system: {
     snapshot(): Promise<Result<SystemSnapshot>>;
     security(): Promise<Result<SecurityStatus>>;
+    /** Live download/upload speed; sampling runs only while this keeps being asked for. */
+    throughput(): Promise<Result<ThroughputStatus>>;
   };
   files: {
     pathForFile(file: File): string;
