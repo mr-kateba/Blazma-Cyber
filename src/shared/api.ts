@@ -1001,6 +1001,19 @@ export interface ReportOptions {
   includeTimeline: boolean;
 }
 
+/** A wordlist remembered for password recovery (the file itself stays where the user keeps it). */
+export interface WordlistEntry {
+  id: string;
+  name: string;
+  path: string;
+  /** The list John the Ripper ships next to john.exe (run/password.lst). */
+  builtin: boolean;
+  exists: boolean;
+  sizeBytes: number | null;
+  /** Exact number of lines (candidate passwords); null when the file can't be read. */
+  lines: number | null;
+}
+
 /** Live network speed (dashboard). */
 export interface ThroughputStatus {
   available: boolean;
@@ -1345,11 +1358,15 @@ export interface BlazmaApi {
     events(source: EventHuntSource, options: EventHuntOptions, taskId: string): Promise<Result<EventHuntResult>>;
   };
   recovery: {
+    /** Saved wordlists (+ John's own password.lst when John is configured), with line counts. */
+    wordlists(): Promise<Result<WordlistEntry[]>>;
+    /** Opens a file dialog and remembers the chosen list; null data when cancelled. */
+    addWordlist(): Promise<Result<WordlistEntry[] | null>>;
+    removeWordlist(id: string): Promise<Result<WordlistEntry[]>>;
     detect(path: string): Promise<Result<{ encryption: EncryptionInfo; name: string; sizeBytes: number }>>;
     engine(kind: RecoveryEngineKind): Promise<RecoveryEngineInfo>;
     pickEngine(kind: RecoveryEngineKind): Promise<Result<RecoveryEngineInfo | null>>;
     clearEngine(kind: RecoveryEngineKind): Promise<Result<true>>;
-    pickWordlist(): Promise<string | null>;
     start(kind: RecoveryEngineKind, target: string, mode: RecoveryMode, performance: RecoveryPerformance, authorized: boolean): Promise<Result<RecoveryStartResult>>;
     stop(id: string): Promise<void>;
     setPaused(id: string, paused: boolean): Promise<boolean>;

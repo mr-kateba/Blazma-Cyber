@@ -54,6 +54,7 @@ import { SettingsService } from './services/settings';
 import { applyWindowTheme } from './window-theme';
 import { logger, setLogLevel } from './services/logger';
 import { ThroughputMonitor } from './services/throughput';
+import { WordlistError, WordlistService } from './services/wordlists';
 import { removeSchedule, ScheduleError, scheduleStatus, setSchedule } from './services/schedule';
 import { sanitizeSchedule } from '../core/schedule';
 import type { ScheduledRun } from './scheduled-run';
@@ -67,7 +68,7 @@ function fail(error: string, detail?: string): Result<never> {
 }
 
 function errorCode(e: unknown): string {
-  if (e instanceof AnalysisError || e instanceof QuarantineError || e instanceof DefenderError || e instanceof YaraError || e instanceof IntelError || e instanceof forensics.ForensicsError || e instanceof NetToolsError || e instanceof RecoveryError || e instanceof CaseError || e instanceof ReportError || e instanceof TerminalError || e instanceof DeviceSecurityError || e instanceof EmailError || e instanceof PwnedError || e instanceof EventHuntError || e instanceof MemoryScanError || e instanceof UpdateError || e instanceof WifiError || e instanceof TrafficError || e instanceof NmapError || e instanceof FimError || e instanceof QrError || e instanceof ScheduleError) return e.code;
+  if (e instanceof AnalysisError || e instanceof QuarantineError || e instanceof DefenderError || e instanceof YaraError || e instanceof IntelError || e instanceof forensics.ForensicsError || e instanceof NetToolsError || e instanceof RecoveryError || e instanceof CaseError || e instanceof ReportError || e instanceof TerminalError || e instanceof DeviceSecurityError || e instanceof EmailError || e instanceof PwnedError || e instanceof EventHuntError || e instanceof MemoryScanError || e instanceof UpdateError || e instanceof WifiError || e instanceof TrafficError || e instanceof NmapError || e instanceof FimError || e instanceof QrError || e instanceof ScheduleError || e instanceof WordlistError) return e.code;
   if (e instanceof OfflineModeError) return 'offline_mode';
   return 'internal_error';
 }
@@ -856,12 +857,16 @@ export function registerIpc(getWindow: () => BrowserWindow | null, isTrustedSend
     settings.update(k === 'john' ? { johnPath: null } : { hashcatPath: null });
     return { ok: true, data: true };
   });
-  handle('recovery:pickWordlist', async () => {
+  const wordlists = new WordlistService(() => settings.get().johnPath);
+  handle('recovery:wordlists', async () => ({ ok: true, data: await wordlists.list() }));
+  handle('recovery:addWordlist', async () => {
     const win = getWindow();
     const opts = { properties: ['openFile' as const] };
     const pick = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
-    return pick.canceled ? null : (pick.filePaths[0] ?? null);
+    if (pick.canceled || !pick.filePaths[0]) return { ok: true, data: null };
+    return { ok: true, data: await wordlists.add(pick.filePaths[0]) };
   });
+  handle('recovery:removeWordlist', async (id: unknown) => ({ ok: true, data: await wordlists.remove(id) }));
   handle('recovery:start', async (kind: unknown, target: unknown, mode: unknown, performance: unknown, authorized: unknown) => {
     const info = await recovery.start(engineKind(kind), target, mode, performance, authorized === true, (id, ev) => {
       // Progress/done events go to the window only. The recovered password is NOT logged here.

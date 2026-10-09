@@ -7,7 +7,7 @@
 import { _electron as electron } from 'playwright';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 
 // The top-bar controls must stay inside the title-bar area left free by the native caption buttons
@@ -352,13 +352,21 @@ try {
   await win.getByRole('button', { name: 'English' }).click();
   await win.locator('.nav-item', { hasText: 'Password Recovery' }).click();
   await win.getByText('Blazma Cyber does not include a recovery engine', { exact: false }).waitFor();
-  const zc = process.env.BLAZMA_TEST_ZIP;
+  // A password-protected RAR from the test fixtures (or BLAZMA_TEST_ZIP).
+  const zc = process.env.BLAZMA_TEST_ZIP ?? join(root, 'tests', 'fixtures', 'encrypted', 'rar3-comment-psw.rar');
   if (zc && existsSync(zc)) {
     await stubOpen(zc);
     await win.getByRole('button', { name: 'Browse…' }).click();
-    await win.getByText('zip-zipcrypto').waitFor({ timeout: 15000 });
+    await win.getByText(basename(zc).replace(/\.[^.]+$/, ''), { exact: false }).first().waitFor({ timeout: 15000 });
     // No engine configured in the test environment, so the workspace says so honestly.
     await win.getByText('No recovery engine is configured', { exact: false }).first().waitFor();
+    // My wordlists: a list is remembered with its real line count (3 here, last line without newline).
+    const wl = join(dataDir, 'my-list.txt');
+    writeFileSync(wl, 'alpha\nbravo\ncharlie');
+    await stubOpen(wl);
+    await win.getByRole('button', { name: 'Add a wordlist…' }).click();
+    await win.locator('#wordlist-select option', { hasText: 'my-list.txt — 3 passwords' }).waitFor({ state: 'attached' });
+    assert.equal(await win.locator('#wordlist-select').inputValue(), wl);
     await win.screenshot({ path: join(out, '21-password-recovery-en.png'), fullPage: true });
     await win.getByRole('button', { name: 'العربية' }).click();
     await win.waitForTimeout(300);

@@ -61,7 +61,7 @@ Status legend: **DONE** (works, connected, both languages, tested where practica
 - DONE Recovered passwords are shown once in the UI and never written to logs or history (redaction covers `recovered`)
 - DONE Session orchestration verified end-to-end with a stand-in engine fixture
 - DONE Automatic hash extraction (`*2john`) inside Blazma (v1.1.4)
-- TODO Hash Lab wordlist management
+- DONE Wordlist management (v1.1.9): "My wordlists" in Password Recovery — remembered paths with exact streamed line counts (cached by size+mtime), missing files shown as such, John's run/password.lst offered automatically; files are never copied, changed or deleted
 
 ## Phase 6 — Investigation
 - DONE Cases (CASE-YYYY-NNN), evidence vs. notes, auto timeline; "Add to case" from File Analyzer / IP / Domain intel
