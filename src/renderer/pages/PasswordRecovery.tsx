@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Cpu, ExternalLink, FileLock2, Gauge, KeyRound, Lock, Pause, Play, RotateCcw, ShieldAlert, ShieldCheck, Square } from 'lucide-react';
 import type { EncryptionInfo } from '../../core/encrypted';
-import type { RecoveryEngineInfo, RecoveryEngineKind, RecoveryEventMsg, RecoveryMode, RecoveryPerformance, RecoveryProgress } from '../../shared/api';
+import type { RecoveryEngineInfo, RecoveryEngineKind, RecoveryEventMsg, RecoveryMode, RecoveryPerformance, RecoveryProgress, WordlistEntry } from '../../shared/api';
 import { Badge, Card, CopyButton, ErrorState, FileDrop, IconTile, Ltr, Notice, Progress, type Tone } from '../components/ui';
 import { useApp } from '../components/AppContext';
 import { useI18n } from '../i18n/I18nProvider';
-import { formatBytes, formatDuration } from '../format';
+import { formatBytes, formatDuration, formatNumber } from '../format';
 
 type Detected = { encryption: EncryptionInfo; name: string; sizeBytes: number; path: string };
 type ModeType = RecoveryMode['type'];
@@ -14,6 +14,54 @@ type ModeType = RecoveryMode['type'];
 const ENGINE_SITES: Record<RecoveryEngineKind, string> = { john: 'https://www.openwall.com/john/', hashcat: 'https://hashcat.net/hashcat/' };
 
 const STRENGTH_TONE: Record<string, Tone> = { strong: 'green', weak: 'amber', unknown: 'gray' };
+
+/** "My wordlists": saved lists (and John's own password.lst) with their real line counts. */
+function WordlistPicker({ value, onChange }: { value: string | null; onChange: (path: string | null) => void }) {
+  const { t, locale } = useI18n();
+  const { toast } = useApp();
+  const [lists, setLists] = useState<WordlistEntry[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const apply = (r: { ok: true; data: WordlistEntry[] | null } | { ok: false; error: string }, pickNewest = false) => {
+    if (!r.ok) return toast('red', t(`errors.${r.error}`));
+    if (!r.data) return;
+    setLists(r.data);
+    const usable = r.data.filter((w) => w.exists);
+    if (pickNewest && usable.length) onChange(usable[usable.length - 1]!.path);
+    else if (!value && usable.length) onChange(usable[0]!.path);
+    else if (value && !usable.some((w) => w.path === value)) onChange(usable[0]?.path ?? null);
+  };
+  useEffect(() => {
+    setBusy(true);
+    void window.blazma.recovery.wordlists().then((r) => (setBusy(false), apply(r)));
+  }, []);
+  const current = lists?.find((w) => w.path === value) ?? null;
+  const label = (w: WordlistEntry) =>
+    `${w.builtin ? t('recovery.wordlists.builtin') : w.name}${!w.exists ? ` — ${t('recovery.wordlists.missing')}` : w.lines !== null ? ` — ${t('recovery.wordlists.lines', { n: formatNumber(locale, w.lines) })}` : ''}`;
+  return (
+    <div className="col" style={{ gap: 8 }}>
+      <div className="row-wrap" style={{ alignItems: 'flex-end', gap: 8 }}>
+        <div className="field" style={{ flex: 1, minWidth: 240 }}>
+          <label htmlFor="wordlist-select">{t('recovery.wordlists.title')}</label>
+          <select id="wordlist-select" className="select" value={value ?? ''} disabled={!lists?.length} onChange={(e) => onChange(e.target.value || null)}>
+            {!lists?.length && <option value="">{busy ? t('recovery.wordlists.counting') : t('recovery.wordlists.none')}</option>}
+            {lists?.map((w) => <option key={w.id} value={w.path} disabled={!w.exists}>{label(w)}</option>)}
+          </select>
+        </div>
+        <button className="btn" disabled={busy} onClick={async () => { setBusy(true); const r = await window.blazma.recovery.addWordlist(); setBusy(false); apply(r, true); }}>{t('recovery.wordlists.add')}</button>
+        {current && !current.builtin && (
+          <button className="btn" disabled={busy} onClick={async () => { const r = await window.blazma.recovery.removeWordlist(current.id); apply(r); }}>{t('recovery.wordlists.forget')}</button>
+        )}
+      </div>
+      {current && (
+        <div className="small dim">
+          <Ltr mono breakAll>{current.path}</Ltr>
+          {current.sizeBytes !== null && <> · {formatBytes(t, current.sizeBytes)}</>}
+        </div>
+      )}
+      <div className="tiny dim">{t('recovery.wordlists.note')}</div>
+    </div>
+  );
+}
 
 function EnginePicker({ engines, onChange }: { engines: Record<RecoveryEngineKind, RecoveryEngineInfo | null>; onChange: () => void }) {
   const { t } = useI18n();
@@ -191,10 +239,7 @@ export function PasswordRecovery() {
               </div>
               <div className="small muted" style={{ marginBottom: 12 }}>{t(`recovery.modeDesc.${mode}`)}</div>
               {(mode === 'wordlist' || mode === 'candidates') && (
-                <div className="row-wrap" style={{ alignItems: 'center' }}>
-                  <button className="btn" onClick={async () => { const p = await window.blazma.recovery.pickWordlist(); if (p) setWordlist(p); }}>{t('recovery.chooseWordlist')}</button>
-                  {wordlist && <Ltr mono breakAll className="small">{wordlist}</Ltr>}
-                </div>
+                <WordlistPicker value={wordlist} onChange={setWordlist} />
               )}
               {mode === 'mask' && (
                 <div className="field">

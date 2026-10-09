@@ -32,6 +32,7 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 ---
 
 ## Table of contents
+- [What's new in 1.1.9](#whats-new-in-119)
 - [What's new in 1.1.8](#whats-new-in-118)
 - [What's new in 1.1.7](#whats-new-in-117)
 - [What's new in 1.1.6](#whats-new-in-116)
@@ -51,6 +52,11 @@ By **[mr-kateba](https://github.com/mr-kateba)**
 - [License](#license)
 
 ---
+
+## What's new in 1.1.9
+- **My wordlists** in Password Recovery: add your own lists once and pick them from a menu, with
+  each list's exact number of passwords and size; John's own `password.lst` appears by itself when
+  John is set up. Blazma only remembers where the files are — it never copies, changes or deletes them.
 
 ## What's new in 1.1.8
 - **Chain of custody for cases.** Every change to a case — evidence added or removed, notes edited,
@@ -328,7 +334,7 @@ Optional, **user-installed** (Blazma never downloads or runs them by itself):
 ---
 
 ## Project status
-**v1.1.8 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
+**v1.1.9 (stable).** Verified automatically on real Windows (Server 2025, the Windows 11 24H2 code
 base) in CI: PowerShell facts, Defender status & EICAR file scan, Authenticode, forensics, the
 network tools, a real pktmon capture, the Wi-Fi reader, startup/signature review, the full UI
 end-to-end, and the NSIS installer build.

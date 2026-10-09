@@ -812,7 +812,8 @@
     "evidence_not_found": "This evidence item no longer exists.",
     "schedule_dev_build": "Scheduling needs the installed (or portable) Blazma Cyber, not a development build.",
     "schedule_failed": "Windows Task Scheduler refused the change. Try again, or check that Task Scheduler is running.",
-    "throughput_unavailable": "The network counters can't be read on this computer."
+    "throughput_unavailable": "The network counters can't be read on this computer.",
+    "wordlists_full": "Up to 50 wordlists can be remembered. Remove one first."
   },
   "defender": {
     "status": {
@@ -1366,7 +1367,6 @@
       "candidates": "Try a small list of specific passwords you already suspect."
     },
     "wordlistFile": "Wordlist file",
-    "chooseWordlist": "Choose wordlist…",
     "maskLabel": "Pattern",
     "maskHelp": "?l lowercase · ?u uppercase · ?d digit · ?s symbol · ?a any · literals allowed",
     "authCheck": "I own this file or am explicitly authorized to recover its password.",
@@ -1414,7 +1414,18 @@
       "gpu": "Force the graphics card. Fastest, if you have a dedicated GPU with up-to-date drivers.",
       "cpu": "Use the processor only. Slower, but works on any computer."
     },
-    "undetermined": "Couldn’t confirm"
+    "undetermined": "Couldn’t confirm",
+    "wordlists": {
+      "title": "My wordlists",
+      "add": "Add a wordlist…",
+      "forget": "Remove from the list",
+      "builtin": "John's own list (password.lst)",
+      "missing": "file not found",
+      "lines": "{{n}} passwords",
+      "none": "No wordlists yet — add one, or set up John (its own list then appears here)",
+      "counting": "Counting…",
+      "note": "Blazma remembers where your lists are and counts their lines; it never copies, changes or deletes them. Removing one here only forgets it."
+    }
   },
   "cases": {
     "title": "Cases",
